@@ -37,7 +37,8 @@ const signer = ... //get ethers signer...
 
 const client = MyobuCloudClient({
   signer, // Needs the wallet to sign transactions
-  cloudServer: "https://cloud.myobu.io/"
+  cloudServer: "http://cloud.myobu.io/",
+  expiresIn: 60 * 60 * 24 * 365, // 1 year
 });
 ```
 

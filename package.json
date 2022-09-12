@@ -1,0 +1,34 @@
+{
+  "name": "myobu-cloud-client",
+  "version": "0.0.1",
+  "main": "build/bundle.js",
+  "repository": "git@github.com:myobu-guardians/myobu-cloud-client.git",
+  "author": "kirito.m",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^14.1.0",
+    "@rollup/plugin-typescript": "^8.5.0",
+    "@types/node": "^18.7.16",
+    "http-server": "^14.1.1",
+    "husky": "^8.0.1",
+    "rollup": "^2.79.0",
+    "rollup-plugin-polyfill-node": "^0.10.2",
+    "tslib": "^2.4.0",
+    "typescript": "^4.8.3"
+  },
+  "scripts": {
+    "build": "tsc --project .",
+    "build:watch": "tsc --project . --watch",
+    "build:web": "rollup --config rollup.config.js",
+    "build:web:watch": "rollup -w --config rollup.config.js",
+    "prepare": "yarn build && yarn build:web",
+    "test": "jest --no-coverage",
+    "test:coverage": "jest",
+    "serve:web": "http-server"
+  },
+  "files": [
+    "build",
+    "out"
+  ]
+}
