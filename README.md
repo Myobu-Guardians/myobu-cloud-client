@@ -35,7 +35,7 @@ import { ethers } from "ethers";
 
 const signer = ... //get ethers signer...
 
-const client = MyobuCloudClient({
+const client = new MyobuCloudClient({
   signer, // Needs the wallet to sign transactions
   cloudServer: "http://cloud.myobu.io/",
   expiresIn: 60 * 60 * 24 * 365, // 1 year
@@ -276,3 +276,8 @@ TODO
 ## ACL
 
 TODO
+
+
+## Useful tools
+
+* https://gitcdn.link/

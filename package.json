@@ -30,5 +30,8 @@
   "files": [
     "build",
     "out"
-  ]
+  ],
+  "dependencies": {
+    "ethers": "^5.7.0"
+  }
 }
