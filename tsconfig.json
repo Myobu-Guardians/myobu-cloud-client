@@ -12,7 +12,7 @@
     ],
     "rootDir": ".",
     "declaration": true,
-    "noUnusedLocals": true,
+    // "noUnusedLocals": true,
     "allowJs": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,

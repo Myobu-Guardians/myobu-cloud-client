@@ -1,8 +1,9 @@
+export declare type MyobuDBPropValue = string | number | boolean | null | MyobuDBPropValue[];
 export interface MyobuRecord {
     labels?: string[];
     type?: string;
     props: {
-        [key: string]: any;
+        [key: string]: MyobuDBPropValue;
     };
 }
 export interface MyobuDBJWTPayload {
@@ -24,79 +25,63 @@ export declare enum MyobuDBOrder {
     ASC = "ASC",
     DESC = "DESC"
 }
-export declare enum MyobuDBRequestMethod {
-    CREATE = "CREATE",
-    QUERY = "QUERY",
-    UPDATE = "UPDATE",
-    DELETE = "DELETE"
-}
 export interface MyobuDBNode {
+    key: string;
     labels?: string[];
-    props?: any;
+    props?: {
+        [key: string]: MyobuDBPropValue;
+    };
 }
 export interface MyobuDBRelationship {
+    key: string;
     type: string;
-    from: string;
-    to: string;
-    props?: any;
+    from: MyobuDBNode;
+    to: MyobuDBNode;
+    props?: {
+        [key: string]: MyobuDBPropValue;
+    };
 }
+export declare type MyobuDBWhereClauseValue = {
+    $gt: MyobuDBPropValue;
+} | {
+    $gte: MyobuDBPropValue;
+} | {
+    $lt: MyobuDBPropValue;
+} | {
+    $lte: MyobuDBPropValue;
+} | {
+    $ne: MyobuDBPropValue;
+} | {
+    $eq: MyobuDBPropValue;
+} | {
+    $in: MyobuDBPropValue[];
+} | {
+    $nin: MyobuDBPropValue[];
+} | {
+    $regex: string;
+} | {
+    $contains: string;
+} | {
+    $startsWith: string;
+} | {
+    $endsWith: string;
+};
+export declare type MyobuDBWhereClause = {
+    [key: string]: MyobuDBWhereClauseValue;
+};
 export declare type MyobuDBRequest = {
-    method: MyobuDBRequestMethod.CREATE;
-    nodes: {
-        [key: string]: MyobuDBNode;
+    match?: (MyobuDBNode | MyobuDBRelationship)[];
+    create?: (MyobuDBNode | MyobuDBRelationship)[];
+    delete?: string[];
+    set?: {
+        [key: string]: any;
     };
-    relationships?: {
-        [key: string]: MyobuDBRelationship;
-    };
+    where?: MyobuDBWhereClause;
     skip?: number;
     limit?: number;
-    return?: string[];
-    jwt: MyobuDBJWT;
-} | {
-    method: MyobuDBRequestMethod.QUERY;
-    nodes: {
-        [key: string]: MyobuDBNode;
-    };
-    relationships?: {
-        [key: string]: MyobuDBRelationship;
-    };
-    skip?: number;
-    limit?: number;
-    return?: string[];
     orderBy?: {
-        [key: string]: {
-            [key: string]: MyobuDBOrder;
-        };
-    };
-    jwt: MyobuDBJWT;
-} | {
-    method: MyobuDBRequestMethod.UPDATE;
-    nodes: {
-        [key: string]: MyobuDBNode;
-    };
-    relationships?: {
-        [key: string]: MyobuDBRelationship;
-    };
-    skip?: number;
-    limit?: number;
-    update: {
-        [key: string]: {
-            props: any;
-        };
+        [key: string]: MyobuDBOrder;
     };
     return?: string[];
-    jwt: MyobuDBJWT;
-} | {
-    method: MyobuDBRequestMethod.DELETE;
-    nodes: {
-        [key: string]: MyobuDBNode;
-    };
-    relationships?: {
-        [key: string]: MyobuDBRelationship;
-    };
-    skip?: number;
-    limit?: number;
-    delete: string[];
-    return?: string[];
-    jwt: MyobuDBJWT;
+    jwt?: MyobuDBJWT;
 };

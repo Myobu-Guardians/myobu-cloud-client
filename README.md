@@ -18,12 +18,13 @@ We provide a cloud service for Myobu, which offers a Graph Database based on whi
   - [Query](#query)
   - [Update](#update)
   - [Delete](#delete)
-  - [Listener](#listener)
+  - [PubSub](#pubsub)
   - [Ownership](#ownership)
   - [Snapshot](#snapshot)
   - [Indexing](#indexing)
   - [Label and unique constraints](#label-and-unique-constraints)
   - [ACL](#acl)
+  - [Useful tools](#useful-tools)
 
 <!-- /code_chunk_output -->
 
@@ -38,7 +39,7 @@ const signer = ... //get ethers signer...
 const client = new MyobuCloudClient({
   signer, // Needs the wallet to sign transactions
   cloudServer: "http://cloud.myobu.io/",
-  expiresIn: 60 * 60 * 24 * 365, // 1 year
+  expiresIn: 1000 * 60 * 60 * 24 * 365, // 1 year
 });
 ```
 
@@ -50,25 +51,32 @@ A node has `labels` to identify its type and `props` (properties) that decribes 
 You can create a node in Myobu Cloud like below:
 
 ```typescript
-const profileNode = await client.create({
-  nodes: {
-    profile: {
+const profileNode = await client.db({
+  create: [
+    {
+      key: "profile",
       labels: ["MyobuProfile"],
       props: {
         name: "kirito",
         email: "kirito.m@myobu.io",
+        created: "$now", // $now is a special keyword that will be replaced with current timestamp
+        modified: "$now",
+        age: 18,
       },
     },
-  },
+  ],
   return: ["profile"],
 });
 console.log(profileNode);
 /*
 {
-  "label": "MyobuProfile",
+  "labels": ["MyobuProfile"],
   "props": {
     "name": "kirito",
     "email": "kirito.m@myobu.io",
+    "created": 1620000000000,
+    "modified": 1620000000000,
+    "age": 18
 
     // System inserted props
     "_id": "0x0000000000000000000000000000000000000000000000000000000000000001",
@@ -81,7 +89,7 @@ console.log(profileNode);
 
 > In the future, the number of Myobu you hold (or staked) will decide how many nodes you can create.  
 > Node labels are strictly required to be camel-case, beginning with an upper-case character. VehicleOwner rather than vehicle_owner etc.
-> We only support `string` and `number` types in `props` for now.
+> We only support `string`, `number`, `boolean`, and `null` types in `props` for now.
 
 ### Relationships
 
@@ -89,33 +97,30 @@ A relationship is a directed connection between two nodes.
 A relationship has a `type` and `props` (properties) to describe the relationship.
 
 ```typescript
-const cityNode = await client.create({
-  nodes: {
-    city: {
-      labels: ["City"],
-      props: {
-        name: "Tokyo",
-      },
+const relationship = await client.db({
+  match: [
+    {
+      ...profileNode,
+      key: "profile",
     },
-  },
-  return: ["city"],
-});
-
-const relationship = await client.create({
-  nodes: {
-    city: cityNode,
-    profile: profileNode,
-  },
-  relationships: {
-    r: {
+  ],
+  create: [
+    {
+      key: "r",
       type: "LIVES_IN",
-      from: "profile",
-      to: "city",
+      from: { key: "profile" },
+      to: {
+        key: "city",
+        labels: ["City"],
+        props: {
+          name: "Tokyo",
+        },
+      },
       props: {
-        since: "2021-03-01",
+        since: 2019,
       },
     },
-  },
+  ],
   return: ["profile", "city", "r"],
 });
 ```
@@ -126,38 +131,47 @@ const relationship = await client.create({
 ## Query
 
 ```typescript
-// Find people who lives in Mars
-const result = await client.query({
-  nodes: {
-    people: {
-      labels: ["MyobuProfile"],
-      props: {
-        // ...
-      },
-    },
-    city: {
-      labels: ["City"],
-      props: {
-        name: "Mars",
-      },
-    },
-  },
-  relationships: {
-    r: {
-      from: "people",
-      to: "city",
+// Find people who lives in Mars and has age greater than 18 and less than 90
+const result = await client.db({
+  match: [
+    {
+      key: "r",
       type: "LIVES_IN",
+      from: {
+        key: "people",
+        labels: ["MyobuProfile"],
+      },
+      to: {
+        key: "city",
+        labels: ["City"],
+        props: {
+          name: "Mars",
+        },
+      },
       props: {
         // ...
       },
     },
+  ],
+  where: {
+    $and: [
+      {
+        "people.age": {
+          $gt: 18,
+        },
+      },
+      {
+        "people.age": {
+          $lt: 90,
+        },
+      },
+    ],
+    // We also support $gt, $gte, $lt, $lte, $ne, $eq, $in, $nin, $regex, $contains, $startsWith, $endsWith
   },
   skip: 10,
   limit: 5,
   orderBy: {
-    people: {
-      _createdAt: "DESC",
-    },
+    "people.age": "DESC",
   },
   return: ["people"],
 });
@@ -166,38 +180,22 @@ const result = await client.query({
 ## Update
 
 ```typescript
-await client.update({
-  nodes: {
-    people: {
+await client.db({
+  match: [
+    {
+      key: "people",
       labels: ["MyobuProfile"],
-      props: {
-        // ...
-      },
-    },
-    city: {
-      labels: ["City"],
-      props: {
-        name: "Mars",
-      },
-    },
-  },
-  relationships: {
-    r: {
-      from: "people",
-      to: "city",
-      type: "LIVES_IN",
-      props: {
-        // ...
-      },
-    },
-  },
-  skip: 10,
-  limit: 5,
-  update: {
-    people: {
       props: {
         name: "kirito",
       },
+    },
+  ],
+  skip: 10,
+  limit: 5,
+  set: {
+    "people.name": "newkirito",
+    $inc: {
+      "people.age": 1,
     },
   },
   return: ["people"],
@@ -207,48 +205,46 @@ await client.update({
 ## Delete
 
 ```typescript
-await client.delete({
-  nodes: {
-    people: {
-      labels: ["MyobuProfile"],
-      props: {
-        // ...
-      },
-    },
-    city: {
-      labels: ["City"],
-      props: {
-        name: "Mars",
-      },
-    },
-  },
-  relationships: {
-    r: {
-      from: "people",
-      to: "city",
+await client.db({
+  match: [
+    {
+      key: "r",
       type: "LIVES_IN",
+      from: {
+        key: "people",
+        labels: ["MyobuProfile"],
+        props: {
+          // ...
+        },
+      },
+      to: {
+        key: "city",
+        labels: ["City"],
+        props: {
+          name: "Mars",
+        },
+      },
       props: {
         // ...
       },
     },
-  },
+  ],
   skip: 10,
   limit: 5,
-  delete: ['people', 'r', 'city'],
+  delete: ["people", "r", "city"],
   return: ["people"],
 });
 ```
 
-## Listener
-
-Listen for a change of node
+## PubSub
 
 ```typescript
-const unsubscribe = await client.listenNodeChangeById(nodeId, (event) => {
+const { unsubscribe, emit } = await client.pubsub(roomId, (event) => {
   // ...
 });
 
-unsubscribe();
+emit("Message"); // Send message to `roomId`
+unsubscribe(); // Unsubscribe from `roomId`
 ```
 
 ## Ownership
@@ -277,7 +273,6 @@ TODO
 
 TODO
 
-
 ## Useful tools
 
-* https://gitcdn.link/
+- https://gitcdn.link/
