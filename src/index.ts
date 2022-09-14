@@ -4,6 +4,7 @@ import {
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,
   MyobuDBRequest,
+  MyobuRecord,
 } from "./types";
 
 interface MyobuCloudClientConstructorProps {
@@ -29,29 +30,63 @@ export default class MyobuCloudClient {
     this.expiresIn = expiresIn;
   }
 
-  async db(request: MyobuDBRequest) {
-    if (request.create || request.set || request.delete) {
-      if (!this.signer) {
-        throw new Error("No signer set");
+  /**
+   * Generate the JWT for `address`
+   * @param address
+   */
+  async generateJWT(): Promise<MyobuDBJWT> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+    const address = await this.signer.getAddress();
+    if (localStorage && localStorage.getItem(`myobu-cloud/jwt/${address}`)) {
+      const jwt: MyobuDBJWT = JSON.parse(
+        localStorage.getItem(`myobu-cloud/jwt/${address}`) || "{}"
+      );
+      // Check if the JWT is still valid
+      if (
+        jwt.signature &&
+        jwt.payload &&
+        Date.now() < jwt.payload.exp &&
+        jwt.payload.iss === address
+      ) {
+        return jwt;
       }
-      const payload: MyobuDBJWTPayload = {
-        iss: await this.signer.getAddress(),
-        exp: Date.now() + this.expiresIn,
-      };
-      let signature: MyobuDBJWTSignature = "";
-      try {
-        signature = await this.signer.signMessage(JSON.stringify(payload));
-      } catch (error) {
-        throw new Error(
-          "Failed to sign JWT to authenticate the Myobu Cloud database request"
-        );
-      }
+    }
 
-      const jwt: MyobuDBJWT = {
-        payload,
-        signature,
-      };
-      request.jwt = jwt;
+    // Generate new JWT
+    const payload: MyobuDBJWTPayload = {
+      iss: await this.signer.getAddress(),
+      exp: Date.now() + this.expiresIn,
+      msg: `Authorize Myobu Cloud to perform database operations on behalf of ${address}`,
+    };
+    let signature: MyobuDBJWTSignature = "";
+    try {
+      signature = await this.signer.signMessage(JSON.stringify(payload));
+    } catch (error) {
+      throw new Error(
+        "Failed to sign JWT to authenticate the Myobu Cloud database request"
+      );
+    }
+
+    const jwt: MyobuDBJWT = {
+      payload,
+      signature,
+    };
+    // Save to localStorage
+    if (localStorage) {
+      localStorage.setItem(`myobu-cloud/jwt/${address}`, JSON.stringify(jwt));
+    }
+    return jwt;
+  }
+
+  async db(request: MyobuDBRequest): Promise<
+    {
+      [key: string]: MyobuRecord;
+    }[]
+  > {
+    if (request.create || request.set || request.delete) {
+      request.jwt = await this.generateJWT();
     }
 
     //

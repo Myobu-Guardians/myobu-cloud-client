@@ -20,6 +20,10 @@ export interface MyobuDBJWTPayload {
    * Expiration time
    */
   exp: number;
+  /**
+   * The arbitrary data that the issuer wants to include in the JWT.
+   */
+  msg?: string;
 }
 
 export type MyobuDBJWTSignature = string;
