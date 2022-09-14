@@ -66,46 +66,109 @@
             this.cloudServer = cloudServer;
             this.expiresIn = expiresIn;
         }
+        /**
+         * Generate the JWT for `address`
+         * @param address
+         */
+        MyobuCloudClient.prototype.generateJWT = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var address, jwt_1, exp, payload, signature, jwt;
+                var _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.signer.getAddress()];
+                        case 1:
+                            address = _b.sent();
+                            if (localStorage && localStorage.getItem("myobu-cloud/jwt/".concat(address))) {
+                                jwt_1 = JSON.parse(localStorage.getItem("myobu-cloud/jwt/".concat(address)) || "{}");
+                                // Check if the JWT is still valid
+                                if (jwt_1.signature &&
+                                    jwt_1.payload &&
+                                    Date.now() < jwt_1.payload.exp &&
+                                    jwt_1.payload.iss === address) {
+                                    return [2 /*return*/, jwt_1];
+                                }
+                            }
+                            exp = Date.now() + this.expiresIn;
+                            _a = {};
+                            return [4 /*yield*/, this.signer.getAddress()];
+                        case 2:
+                            payload = (_a.iss = _b.sent(),
+                                _a.exp = exp,
+                                _a.msg = "Authorize to use Myobu Cloud on behalf of ".concat(address, " by ").concat(new Date(exp).toLocaleString()),
+                                _a);
+                            signature = "";
+                            _b.label = 3;
+                        case 3:
+                            _b.trys.push([3, 5, , 6]);
+                            return [4 /*yield*/, this.signer.signMessage(JSON.stringify(payload))];
+                        case 4:
+                            signature = _b.sent();
+                            return [3 /*break*/, 6];
+                        case 5:
+                            _b.sent();
+                            throw new Error("Failed to sign JWT to authenticate the Myobu Cloud database request");
+                        case 6:
+                            jwt = {
+                                payload: payload,
+                                signature: signature,
+                            };
+                            // Save to localStorage
+                            if (localStorage) {
+                                localStorage.setItem("myobu-cloud/jwt/".concat(address), JSON.stringify(jwt));
+                            }
+                            return [2 /*return*/, jwt];
+                    }
+                });
+            });
+        };
         MyobuCloudClient.prototype.db = function (request) {
             return __awaiter(this, void 0, void 0, function () {
-                var res, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                var _a, res, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
-                            if (!(request.create || request.set || request.delete)) return [3 /*break*/, 1];
-                            // Check JWT
-                            return [2 /*return*/, {
-                                    error: {
-                                        message: "JWT is required for create, set, and delete operations",
-                                    },
-                                }];
+                            if (!(request.create || request.set || request.delete)) return [3 /*break*/, 2];
+                            _a = request;
+                            return [4 /*yield*/, this.generateJWT()];
                         case 1:
-                            _a.trys.push([1, 5, , 6]);
-                            return [4 /*yield*/, fetch("".concat(this.cloudServer, "/db"), {
-                                    method: "POST",
-                                    headers: {
-                                        "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify(request),
-                                })];
-                        case 2:
-                            res = _a.sent();
-                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            _a.jwt = _c.sent();
+                            _c.label = 2;
+                        case 2: return [4 /*yield*/, fetch("".concat(this.cloudServer, "/db"), {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify(request),
+                            })];
+                        case 3:
+                            res = _c.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 5];
                             return [4 /*yield*/, res.json()];
-                        case 3: return [2 /*return*/, _a.sent()];
-                        case 4: return [3 /*break*/, 6];
+                        case 4: return [2 /*return*/, _c.sent()];
                         case 5:
-                            error_1 = _a.sent();
-                            return [2 /*return*/, {
-                                    error: error_1,
-                                }];
-                        case 6: return [2 /*return*/];
+                            _b = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 6: throw new (_b.apply(Error, [void 0, _c.sent()]))();
                     }
                 });
             });
         };
         MyobuCloudClient.prototype.setExpiresIn = function (expiresIn) {
             this.expiresIn = expiresIn;
+        };
+        MyobuCloudClient.prototype.setSigner = function (signer) {
+            this.signer = signer;
+        };
+        MyobuCloudClient.prototype.subscribe = function (roomName, callback) {
+            return {
+                unsubscribe: function () { },
+                emit: function (data) { },
+            };
         };
         return MyobuCloudClient;
     }());

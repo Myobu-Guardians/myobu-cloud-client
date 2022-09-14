@@ -6,6 +6,12 @@ import {
   MyobuDBRequest,
   MyobuRecord,
 } from "./types";
+import { io } from "socket.io-client";
+
+export interface MyobuPubSubHandler<EmitDataType> {
+  unsubscribe: () => void;
+  emit: (data: EmitDataType) => Promise<void>;
+}
 
 interface MyobuCloudClientConstructorProps {
   signer?: ethers.Signer;
@@ -13,9 +19,10 @@ interface MyobuCloudClientConstructorProps {
   expiresIn?: number;
 }
 export default class MyobuCloudClient {
-  private signer?: ethers.Signer;
-  private cloudServer: string;
-  private expiresIn: number;
+  public signer?: ethers.Signer;
+  public cloudServer: string;
+  public expiresIn: number;
+  private socket?: any;
 
   constructor({
     signer,
@@ -55,10 +62,13 @@ export default class MyobuCloudClient {
     }
 
     // Generate new JWT
+    const exp = Date.now() + this.expiresIn;
     const payload: MyobuDBJWTPayload = {
       iss: await this.signer.getAddress(),
-      exp: Date.now() + this.expiresIn,
-      msg: `Authorize Myobu Cloud to perform database operations on behalf of ${address}`,
+      exp: exp,
+      msg: `Authorize to use Myobu Cloud on behalf of ${address} by ${new Date(
+        exp
+      ).toLocaleString()}`,
     };
     let signature: MyobuDBJWTSignature = "";
     try {
@@ -110,5 +120,40 @@ export default class MyobuCloudClient {
 
   setSigner(signer: ethers.Signer) {
     this.signer = signer;
+  }
+
+  /**
+   * Subscribing and emitting messages require JWT to be set
+   * Unsubscribing adn listening to events do not require JWT
+   * @param roomName
+   * @param callback
+   * @returns
+   */
+  async subscribe<EmitDataType, ReceiveDataType>(
+    roomName: string,
+    callback: (data: ReceiveDataType, from: string) => void
+  ): Promise<MyobuPubSubHandler<EmitDataType>> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    if (!this.socket) {
+      const socket = io(this.cloudServer);
+      this.socket = socket;
+    }
+
+    const jwt = await this.generateJWT();
+    this.socket.emit("subscribe", roomName, jwt);
+    this.socket.on("message", callback);
+
+    return {
+      unsubscribe: () => {
+        this.socket.emit("unsubscribe", roomName);
+      },
+      emit: async (data) => {
+        const jwt = await this.generateJWT();
+        this.socket.emit("message", roomName, jwt, data);
+      },
+    };
   }
 }

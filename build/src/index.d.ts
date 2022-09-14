@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { MyobuDBRequest } from "./types";
+import { MyobuDBJWT, MyobuDBRequest, MyobuRecord } from "./types";
 interface MyobuCloudClientConstructorProps {
     signer?: ethers.Signer;
     cloudServer?: string;
@@ -10,7 +10,19 @@ export default class MyobuCloudClient {
     private cloudServer;
     private expiresIn;
     constructor({ signer, cloudServer, expiresIn, }: MyobuCloudClientConstructorProps);
-    db(request: MyobuDBRequest): Promise<any>;
+    /**
+     * Generate the JWT for `address`
+     * @param address
+     */
+    generateJWT(): Promise<MyobuDBJWT>;
+    db(request: MyobuDBRequest): Promise<{
+        [key: string]: MyobuRecord;
+    }[]>;
     setExpiresIn(expiresIn: number): void;
+    setSigner(signer: ethers.Signer): void;
+    subscribe(roomName: string, callback: (data: any) => void): {
+        unsubscribe: () => void;
+        emit: (data: any) => void;
+    };
 }
 export {};
