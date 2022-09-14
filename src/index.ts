@@ -10,7 +10,7 @@ import { io } from "socket.io-client";
 
 export interface MyobuPubSubHandler<EmitDataType> {
   unsubscribe: () => void;
-  emit: (data: EmitDataType) => Promise<void>;
+  publish: (data: EmitDataType) => Promise<void>;
 }
 
 interface MyobuCloudClientConstructorProps {
@@ -150,7 +150,7 @@ export default class MyobuCloudClient {
       unsubscribe: () => {
         this.socket.emit("unsubscribe", roomName);
       },
-      emit: async (data) => {
+      publish: async (data) => {
         const jwt = await this.generateJWT();
         this.socket.emit("message", roomName, jwt, data);
       },
