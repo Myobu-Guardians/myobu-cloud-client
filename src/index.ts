@@ -95,7 +95,13 @@ export default class MyobuCloudClient {
       [key: string]: MyobuRecord;
     }[]
   > {
-    if (request.create || request.set || request.delete) {
+    if (
+      request.create ||
+      request.set ||
+      request.delete ||
+      request.createConstraints ||
+      request.dropConstraints
+    ) {
       request.jwt = await this.generateJWT();
     }
 
