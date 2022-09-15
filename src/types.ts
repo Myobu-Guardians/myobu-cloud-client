@@ -100,6 +100,7 @@ export type MyobuDBWhereClause = /*
   |*/ { [key: string]: MyobuDBWhereClauseValue };
 
 export type MyobuDBRequest = {
+  // CRUD
   match?: (MyobuDBNode | MyobuDBRelationship)[];
   create?: (MyobuDBNode | MyobuDBRelationship)[];
   delete?: string[];
@@ -113,6 +114,23 @@ export type MyobuDBRequest = {
     [key: string]: MyobuDBOrder;
   };
   return?: string[];
+
+  // Constraints
+  /**
+   * List constraints of label.
+   */
+  listConstraints: string;
+  /**
+   * Drop constraints by constraint names
+   */
+  dropConstraints: string[];
+  /**
+   * Create constraints
+   */
+  createConstraints: {
+    label: string;
+    unique: string[][];
+  };
 
   // JWT
   jwt?: MyobuDBJWT;

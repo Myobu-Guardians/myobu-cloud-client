@@ -236,6 +236,35 @@ await client.db({
 });
 ```
 
+## Constraints for Label
+
+### List contraints
+
+```typescript
+await client.db({
+  listConstraints: "MyobuProfile",
+});
+```
+
+### Create constraints
+
+```typescript
+await client.db({
+  createConstraints: {
+    label: "MyobuProfile",
+    unique: [["_id"], ["email", "name"]],
+  },
+});
+```
+
+### Delete constraints
+
+```typescript
+await client.db({
+  dropConstraints: ["constraint_name_1", "constraint_name_2"],
+});
+```
+
 ## PubSub
 
 ```typescript

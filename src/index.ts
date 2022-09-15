@@ -118,6 +118,7 @@ export default class MyobuCloudClient {
     this.expiresIn = expiresIn;
   }
 
+  // TODO: should we allow this? as setting signer might cause the JWT to be invalid and introduce bugs like for pubsub
   setSigner(signer: ethers.Signer) {
     this.signer = signer;
   }
