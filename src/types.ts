@@ -126,15 +126,15 @@ export type MyobuDBRequest = {
   /**
    * List constraints of label.
    */
-  listConstraints: string;
+  listConstraints?: string;
   /**
    * Drop constraints by constraint names
    */
-  dropConstraints: string[];
+  dropConstraints?: string[];
   /**
    * Create constraints
    */
-  createConstraints: {
+  createConstraints?: {
     label: string;
     unique: string[][];
   };
