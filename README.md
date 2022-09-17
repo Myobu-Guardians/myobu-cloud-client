@@ -128,6 +128,30 @@ const relationship = await client.db({
 > In the future, the number of Myobu you hold (or staked) will decide how many relationships you can create.  
 > Relationship types are strictly required to be upper-case, using underscore to separate words. :OWNS_VEHICLE rather than :ownsVehicle etc.
 
+## Upsert (Create or Update) using `merge`
+
+```typescript
+const profileNode = await client.db({
+  merge: [
+    {
+      key: "profile",
+      labels: ["MyobuProfile"],
+      props: {
+        name: "kirito",
+      }
+    }
+  ],
+  onMatch: {
+    "profile.fetched": "$now",
+  },
+  onCreate: {
+    "profile.created": "$now",
+    "profile.fetched": "$now",
+  },
+  return ["profile"]
+})
+```
+
 ## Query
 
 ```typescript

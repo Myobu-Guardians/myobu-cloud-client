@@ -103,8 +103,15 @@ export type MyobuDBRequest = {
   // CRUD
   match?: (MyobuDBNode | MyobuDBRelationship)[];
   create?: (MyobuDBNode | MyobuDBRelationship)[];
+  merge?: (MyobuDBNode | MyobuDBRelationship)[];
   delete?: string[];
   set?: {
+    [key: string]: any;
+  };
+  onMatch?: {
+    [key: string]: any;
+  };
+  onCreate?: {
     [key: string]: any;
   };
   where?: MyobuDBWhereClause;

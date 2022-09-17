@@ -97,6 +97,7 @@ export default class MyobuCloudClient {
   > {
     if (
       request.create ||
+      request.merge ||
       request.set ||
       request.delete ||
       request.createConstraints ||
