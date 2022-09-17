@@ -13,6 +13,17 @@ export interface MyobuPubSubHandler<EmitDataType> {
   publish: (data: EmitDataType) => Promise<void>;
 }
 
+export function appendPrefixToObjectKeys(
+  obj: { [key: string]: any },
+  prefix: string
+): { [key: string]: any } {
+  const newObj: { [key: string]: any } = {};
+  for (const key in obj) {
+    newObj[`${prefix}${key}`] = obj[key];
+  }
+  return newObj;
+}
+
 interface MyobuCloudClientConstructorProps {
   signer?: ethers.Signer;
   cloudServer?: string;
