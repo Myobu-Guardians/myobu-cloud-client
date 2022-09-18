@@ -41,7 +41,9 @@ export enum MyobuDBOrder {
 export interface MyobuDBNode {
   key: string;
   labels?: string[];
-  props?: { [key: string]: MyobuDBPropValue };
+  props?: {
+    [key: string]: MyobuDBPropValue;
+  };
 }
 
 export interface MyobuDBRelationship {
@@ -89,6 +91,24 @@ export type MyobuDBWhereClauseValue =
   | {
       $endsWith: string;
     };
+
+export interface MyobuDBLabelACL {
+  node: {
+    minHold: number;
+    minStake: number;
+    relationship: string;
+    "!relationship": string;
+  };
+}
+
+export interface MyobuDBNodeACL {
+  relationship: {
+    minHold: number;
+    minStake: number;
+    relationship: string;
+    "!relationship": string;
+  };
+}
 
 export type MyobuDBWhereClause = /*
   | {

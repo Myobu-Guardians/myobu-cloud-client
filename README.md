@@ -15,15 +15,19 @@ We provide a cloud service for Myobu, which offers a Graph Database based on whi
   - [Data models](#data-models)
     - [Node](#node)
     - [Relationships](#relationships)
+  - [Upsert (Create or Update) using `merge`](#upsert-create-or-update-using-merge)
   - [Query](#query)
   - [Update](#update)
   - [Delete](#delete)
+  - [Constraints for Label](#constraints-for-label)
+    - [List contraints](#list-contraints)
+    - [Create constraints](#create-constraints)
+    - [Delete constraints](#delete-constraints)
   - [PubSub](#pubsub)
   - [Ownership](#ownership)
   - [Snapshot](#snapshot)
-  - [Indexing](#indexing)
-  - [Label and unique constraints](#label-and-unique-constraints)
   - [ACL](#acl)
+  - [Triggers](#triggers)
   - [Useful tools](#useful-tools)
 
 <!-- /code_chunk_output -->
@@ -314,17 +318,96 @@ Store nodes, relationships (subgraph) data in a snapshot on blockchain.
 await client.takeSnapshot(nodeId);
 ```
 
-## Indexing
-
-TODO
-
-## Label and unique constraints
-
-TODO
-
 ## ACL
 
-TODO
+`To be implemented`
+
+Access Control List (ACL) is a list of permissions for a label or node.
+
+- **Label**
+
+```typescript
+await client.db({
+  create: [
+    {
+      key: "myLabelWithACL",
+      labels: ["Label"],
+      props: {
+        name: "MyLabel",
+        _acl: JSON.stringify({
+          node: {
+            minHold: 100, // Minimum number of Myobu you need to hold to create a node with this label
+            minStake: 100, // Minimum number of Myobu you need to stake to create a node with this label
+            relationship: "ALLOW_CREATE", // The relationship type to address required to create a node with this label
+            "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a node with this label
+          },
+        }),
+      },
+    },
+  ],
+  return: ["myLabelWithACL"],
+});
+```
+
+- **Node**
+
+```typescript
+await client.db({
+  create: [
+    {
+      key: "myNodeWithACL",
+      labels: ["MyobuProfile"],
+      props: {
+        name: "MyNode",
+        _acl: JSON.stringify({
+          relationship: {
+            minHold: 100, // Minimum number of Myobu you need to hold to create a relationship with this node
+            minStake: 100, // Minimum number of Myobu you need to stake to create a relationship with this node
+            relationship: "ALLOW_CREATE", // The relationship type to address required to create a relationship with this node
+            "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a relationship with this node
+          },
+        }),
+      },
+    },
+  ],
+  return: ["myNodeWithACL"],
+});
+```
+
+## Triggers
+
+`To be implemented`
+
+You can set triggers for a specific node
+
+```typescript
+await client.db({
+  create: [
+    {
+      key: "profile",
+      labels: ["MNS"],
+      props: {
+        name: "kirito",
+        followers: 0,
+        followings: 0,
+      },
+      triggers: [
+        {
+          type: "FOLLOWS", // When someone follows this node
+          from: {
+            label: "MNS",
+          }
+          set: {
+            $inc: {
+              "profile.followers": 1,
+            },
+          },
+        },
+      ],
+    },
+  ],
+});
+```
 
 ## Useful tools
 
