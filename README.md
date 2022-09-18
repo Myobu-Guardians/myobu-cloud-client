@@ -59,7 +59,7 @@ const profileNode = await client.db({
   create: [
     {
       key: "profile",
-      labels: ["MyobuProfile"],
+      labels: ["MNS"],
       props: {
         name: "kirito",
         email: "kirito.m@myobu.io",
@@ -74,7 +74,7 @@ const profileNode = await client.db({
 console.log(profileNode);
 /*
 {
-  "labels": ["MyobuProfile"],
+  "labels": ["MNS"],
   "props": {
     "name": "kirito",
     "email": "kirito.m@myobu.io",
@@ -139,7 +139,7 @@ const profileNode = await client.db({
   merge: [
     {
       key: "profile",
-      labels: ["MyobuProfile"],
+      labels: ["MNS"],
       props: {
         name: "kirito",
       }
@@ -167,7 +167,7 @@ const result = await client.db({
       type: "LIVES_IN",
       from: {
         key: "people",
-        labels: ["MyobuProfile"],
+        labels: ["MNS"],
       },
       to: {
         key: "city",
@@ -212,7 +212,7 @@ await client.db({
   match: [
     {
       key: "people",
-      labels: ["MyobuProfile"],
+      labels: ["MNS"],
       props: {
         name: "kirito",
       },
@@ -240,7 +240,7 @@ await client.db({
       type: "LIVES_IN",
       from: {
         key: "people",
-        labels: ["MyobuProfile"],
+        labels: ["MNS"],
         props: {
           // ...
         },
@@ -270,7 +270,7 @@ await client.db({
 
 ```typescript
 await client.db({
-  listConstraints: "MyobuProfile",
+  listConstraints: "MNS",
 });
 ```
 
@@ -279,8 +279,8 @@ await client.db({
 ```typescript
 await client.db({
   createConstraints: {
-    label: "MyobuProfile",
-    unique: [["_id"], ["email", "name"]],
+    label: "MNS",
+    unique: [["_owner"], ["name"]],
   },
 });
 ```
@@ -356,7 +356,7 @@ await client.db({
   create: [
     {
       key: "myNodeWithACL",
-      labels: ["MyobuProfile"],
+      labels: ["MNS"],
       props: {
         name: "MyNode",
         _acl: JSON.stringify({
