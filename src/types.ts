@@ -25,7 +25,11 @@ export interface MyobuDBJWTPayload {
 export type MyobuDBJWTSignature = string;
 
 export interface MyobuDBJWT {
-  payload: string; // MyobuDBJWTPayload;
+  message?: string;
+  payload: MyobuDBJWTPayload;
+  /**
+   * Signature is generated from `message + JSON.stringify(payload)`
+   */
   signature: MyobuDBJWTSignature;
 }
 
