@@ -62,13 +62,19 @@ export default class MyobuCloudClient {
         localStorage.getItem(`myobu-cloud/jwt/${address}`) || "{}"
       );
       // Check if the JWT is still valid
-      if (
-        jwt.signature &&
-        jwt.payload &&
-        Date.now() < jwt.payload.exp &&
-        jwt.payload.iss === address
-      ) {
-        return jwt;
+      if (jwt.signature && jwt.payload && typeof jwt.payload === "string") {
+        const index = jwt.payload.lastIndexOf("{");
+        const payloadString = jwt.payload.slice(index);
+        try {
+          const payload: MyobuDBJWTPayload = JSON.parse(payloadString);
+          if (
+            payload.exp &&
+            Date.now() < payload.exp &&
+            payload.iss === address
+          ) {
+            return jwt;
+          }
+        } catch (error) {}
       }
     }
 
@@ -77,13 +83,18 @@ export default class MyobuCloudClient {
     const payload: MyobuDBJWTPayload = {
       iss: await this.signer.getAddress(),
       exp: exp,
-      msg: `Authorize to use Myobu Cloud on behalf of ${address} by ${new Date(
-        exp
-      ).toLocaleString()}`,
     };
+    const payloadString = `Greetings from Myobu Cloud!
+
+Sign this message to prove that you are the owner of the address ${payload.iss}.
+This signature will not cost you any fees.  
+This signature will expire at ${new Date(exp).toLocaleString()}
+
+JWT:${JSON.stringify(payload)}`;
+
     let signature: MyobuDBJWTSignature = "";
     try {
-      signature = await this.signer.signMessage(JSON.stringify(payload));
+      signature = await this.signer.signMessage(payloadString);
     } catch (error) {
       throw new Error(
         "Failed to sign JWT to authenticate the Myobu Cloud database request"
@@ -91,7 +102,7 @@ export default class MyobuCloudClient {
     }
 
     const jwt: MyobuDBJWT = {
-      payload,
+      payload: payloadString,
       signature,
     };
     // Save to localStorage
