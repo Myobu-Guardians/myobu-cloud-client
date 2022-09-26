@@ -26,25 +26,25 @@ export function appendPrefixToObjectKeys(
 
 interface MyobuProtocolClientConstructorProps {
   signer?: ethers.Signer;
-  cloudServer?: string;
+  server?: string;
   expiresIn?: number;
 }
 export default class MyobuProtocolClient {
   public signer?: ethers.Signer;
-  public cloudServer: string;
+  public server: string;
   public expiresIn: number;
   private socket?: any;
 
   constructor({
     signer,
-    cloudServer,
+    server,
     expiresIn,
   }: MyobuProtocolClientConstructorProps) {
-    cloudServer = cloudServer || "http://cloud.myobu.io";
+    server = server || "https://protocol.myobu.io";
     expiresIn = expiresIn || 1000 * 60 * 60; // 1 hour
 
     this.signer = signer;
-    this.cloudServer = cloudServer;
+    this.server = server;
     this.expiresIn = expiresIn;
   }
 
@@ -57,9 +57,9 @@ export default class MyobuProtocolClient {
       throw new Error("No signer set. Please connect wallet first.");
     }
     const address = await this.signer.getAddress();
-    if (localStorage && localStorage.getItem(`myobu-cloud/jwt/${address}`)) {
+    if (localStorage && localStorage.getItem(`myobu-protocol/jwt/${address}`)) {
       const jwt: MyobuDBJWT = JSON.parse(
-        localStorage.getItem(`myobu-cloud/jwt/${address}`) || "{}"
+        localStorage.getItem(`myobu-protocol/jwt/${address}`) || "{}"
       );
       // Check if the JWT is still valid
       if (
@@ -108,7 +108,10 @@ JWT:`;
     };
     // Save to localStorage
     if (localStorage) {
-      localStorage.setItem(`myobu-cloud/jwt/${address}`, JSON.stringify(jwt));
+      localStorage.setItem(
+        `myobu-protocol/jwt/${address}`,
+        JSON.stringify(jwt)
+      );
     }
     return jwt;
   }
@@ -130,7 +133,7 @@ JWT:`;
     }
 
     //
-    const res = await fetch(`${this.cloudServer}/db`, {
+    const res = await fetch(`${this.server}/db`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -169,7 +172,7 @@ JWT:`;
     }
 
     if (!this.socket) {
-      const socket = io(this.cloudServer);
+      const socket = io(this.server);
       this.socket = socket;
     }
 

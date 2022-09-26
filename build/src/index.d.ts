@@ -11,15 +11,15 @@ export declare function appendPrefixToObjectKeys(obj: {
 };
 interface MyobuProtocolClientConstructorProps {
     signer?: ethers.Signer;
-    cloudServer?: string;
+    server?: string;
     expiresIn?: number;
 }
 export default class MyobuProtocolClient {
     signer?: ethers.Signer;
-    cloudServer: string;
+    server: string;
     expiresIn: number;
     private socket?;
-    constructor({ signer, cloudServer, expiresIn, }: MyobuProtocolClientConstructorProps);
+    constructor({ signer, server, expiresIn, }: MyobuProtocolClientConstructorProps);
     /**
      * Generate the JWT for `address`
      * @param address

@@ -4,7 +4,7 @@
 
 Myobu as a Service
 
-We provide a cloud service for Myobu, which offers a Graph Database based on which you could quickly build your own web3 application.
+We provide a protocol service for Myobu, which offers a Graph Database based on which you could quickly build your own web3 application.
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
@@ -42,7 +42,7 @@ const signer = ... //get ethers signer...
 
 const client = new MyobuProtocolClient({
   signer, // Needs the wallet to sign transactions
-  cloudServer: "http://cloud.myobu.io/",
+  server: "https://protocol.myobu.io/",
   expiresIn: 1000 * 60 * 60 * 24 * 365, // 1 year
 });
 ```

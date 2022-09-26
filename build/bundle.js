@@ -66,11 +66,11 @@
     }
     var MyobuProtocolClient = /** @class */ (function () {
         function MyobuProtocolClient(_a) {
-            var signer = _a.signer, cloudServer = _a.cloudServer, expiresIn = _a.expiresIn;
-            cloudServer = cloudServer || "http://cloud.myobu.io";
+            var signer = _a.signer, server = _a.server, expiresIn = _a.expiresIn;
+            server = server || "https://protocol.myobu.io";
             expiresIn = expiresIn || 1000 * 60 * 60; // 1 hour
             this.signer = signer;
-            this.cloudServer = cloudServer;
+            this.server = server;
             this.expiresIn = expiresIn;
         }
         /**
@@ -90,8 +90,8 @@
                             return [4 /*yield*/, this.signer.getAddress()];
                         case 1:
                             address = _b.sent();
-                            if (localStorage && localStorage.getItem("myobu-cloud/jwt/".concat(address))) {
-                                jwt_1 = JSON.parse(localStorage.getItem("myobu-cloud/jwt/".concat(address)) || "{}");
+                            if (localStorage && localStorage.getItem("myobu-protocol/jwt/".concat(address))) {
+                                jwt_1 = JSON.parse(localStorage.getItem("myobu-protocol/jwt/".concat(address)) || "{}");
                                 // Check if the JWT is still valid
                                 if (jwt_1.signature &&
                                     jwt_1.payload &&
@@ -128,7 +128,7 @@
                             };
                             // Save to localStorage
                             if (localStorage) {
-                                localStorage.setItem("myobu-cloud/jwt/".concat(address), JSON.stringify(jwt));
+                                localStorage.setItem("myobu-protocol/jwt/".concat(address), JSON.stringify(jwt));
                             }
                             return [2 /*return*/, jwt];
                     }
@@ -152,7 +152,7 @@
                         case 1:
                             _a.jwt = _c.sent();
                             _c.label = 2;
-                        case 2: return [4 /*yield*/, fetch("".concat(this.cloudServer, "/db"), {
+                        case 2: return [4 /*yield*/, fetch("".concat(this.server, "/db"), {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
@@ -197,7 +197,7 @@
                                 throw new Error("No signer set. Please connect wallet first.");
                             }
                             if (!this.socket) {
-                                socket = socket_ioClient.io(this.cloudServer);
+                                socket = socket_ioClient.io(this.server);
                                 this.socket = socket;
                             }
                             return [4 /*yield*/, this.generateJWT()];
