@@ -24,12 +24,12 @@ export function appendPrefixToObjectKeys(
   return newObj;
 }
 
-interface MyobuCloudClientConstructorProps {
+interface MyobuProtocolClientConstructorProps {
   signer?: ethers.Signer;
   cloudServer?: string;
   expiresIn?: number;
 }
-export default class MyobuCloudClient {
+export default class MyobuProtocolClient {
   public signer?: ethers.Signer;
   public cloudServer: string;
   public expiresIn: number;
@@ -39,7 +39,7 @@ export default class MyobuCloudClient {
     signer,
     cloudServer,
     expiresIn,
-  }: MyobuCloudClientConstructorProps) {
+  }: MyobuProtocolClientConstructorProps) {
     cloudServer = cloudServer || "http://cloud.myobu.io";
     expiresIn = expiresIn || 1000 * 60 * 60; // 1 hour
 
@@ -82,7 +82,7 @@ export default class MyobuCloudClient {
       iss: await this.signer.getAddress(),
       exp: exp,
     };
-    const message = `Greetings from Myobu Cloud!
+    const message = `Greetings from Myobu Protocol!
 
 Sign this message to prove that you are the owner of the address ${payload.iss}.
 This signature will not cost you any fees.  
@@ -97,7 +97,7 @@ JWT:`;
       );
     } catch (error) {
       throw new Error(
-        "Failed to sign JWT to authenticate the Myobu Cloud database request"
+        "Failed to sign JWT to authenticate the Myobu Protocol database request"
       );
     }
 

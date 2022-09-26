@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.Korona = factory());
-})(this, (function () { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports, require('ethers'), require('socket.io-client')) :
+    typeof define === 'function' && define.amd ? define(['exports', 'ethers', 'socket.io-client'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, factory(global.Korona = {}, global.ethers, global.socket_ioClient));
+})(this, (function (exports, ethers, socket_ioClient) { 'use strict';
 
     /******************************************************************************
     Copyright (c) Microsoft Corporation.
@@ -57,8 +57,15 @@
         }
     }
 
-    var MyobuCloudClient = /** @class */ (function () {
-        function MyobuCloudClient(_a) {
+    function appendPrefixToObjectKeys(obj, prefix) {
+        var newObj = {};
+        for (var key in obj) {
+            newObj["".concat(prefix).concat(key)] = obj[key];
+        }
+        return newObj;
+    }
+    var MyobuProtocolClient = /** @class */ (function () {
+        function MyobuProtocolClient(_a) {
             var signer = _a.signer, cloudServer = _a.cloudServer, expiresIn = _a.expiresIn;
             cloudServer = cloudServer || "http://cloud.myobu.io";
             expiresIn = expiresIn || 1000 * 60 * 60; // 1 hour
@@ -70,9 +77,9 @@
          * Generate the JWT for `address`
          * @param address
          */
-        MyobuCloudClient.prototype.generateJWT = function () {
+        MyobuProtocolClient.prototype.generateJWT = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var address, jwt_1, exp, payload, signature, jwt;
+                var address, jwt_1, exp, payload, message, signature, jwt;
                 var _a;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
@@ -89,7 +96,8 @@
                                 if (jwt_1.signature &&
                                     jwt_1.payload &&
                                     Date.now() < jwt_1.payload.exp &&
-                                    jwt_1.payload.iss === address) {
+                                    jwt_1.payload.iss === address &&
+                                    ethers.ethers.utils.verifyMessage((jwt_1.message || "") + JSON.stringify(jwt_1.payload), jwt_1.signature) === address) {
                                     return [2 /*return*/, jwt_1];
                                 }
                             }
@@ -99,21 +107,22 @@
                         case 2:
                             payload = (_a.iss = _b.sent(),
                                 _a.exp = exp,
-                                _a.msg = "Authorize to use Myobu Cloud on behalf of ".concat(address, " by ").concat(new Date(exp).toLocaleString()),
                                 _a);
+                            message = "Greetings from Myobu Protocol!\n\nSign this message to prove that you are the owner of the address ".concat(payload.iss, ".\nThis signature will not cost you any fees.  \nThis signature will expire at ").concat(new Date(exp).toLocaleString(), "\n\nJWT:");
                             signature = "";
                             _b.label = 3;
                         case 3:
                             _b.trys.push([3, 5, , 6]);
-                            return [4 /*yield*/, this.signer.signMessage(JSON.stringify(payload))];
+                            return [4 /*yield*/, this.signer.signMessage(message + JSON.stringify(payload))];
                         case 4:
                             signature = _b.sent();
                             return [3 /*break*/, 6];
                         case 5:
                             _b.sent();
-                            throw new Error("Failed to sign JWT to authenticate the Myobu Cloud database request");
+                            throw new Error("Failed to sign JWT to authenticate the Myobu Protocol database request");
                         case 6:
                             jwt = {
+                                message: message,
                                 payload: payload,
                                 signature: signature,
                             };
@@ -126,13 +135,18 @@
                 });
             });
         };
-        MyobuCloudClient.prototype.db = function (request) {
+        MyobuProtocolClient.prototype.db = function (request) {
             return __awaiter(this, void 0, void 0, function () {
                 var _a, res, _b;
                 return __generator(this, function (_c) {
                     switch (_c.label) {
                         case 0:
-                            if (!(request.create || request.set || request.delete)) return [3 /*break*/, 2];
+                            if (!(request.create ||
+                                request.merge ||
+                                request.set ||
+                                request.delete ||
+                                request.createConstraints ||
+                                request.dropConstraints)) return [3 /*break*/, 2];
                             _a = request;
                             return [4 /*yield*/, this.generateJWT()];
                         case 1:
@@ -158,21 +172,66 @@
                 });
             });
         };
-        MyobuCloudClient.prototype.setExpiresIn = function (expiresIn) {
+        MyobuProtocolClient.prototype.setExpiresIn = function (expiresIn) {
             this.expiresIn = expiresIn;
         };
-        MyobuCloudClient.prototype.setSigner = function (signer) {
+        // TODO: should we allow this? as setting signer might cause the JWT to be invalid and introduce bugs like for pubsub
+        MyobuProtocolClient.prototype.setSigner = function (signer) {
             this.signer = signer;
         };
-        MyobuCloudClient.prototype.subscribe = function (roomName, callback) {
-            return {
-                unsubscribe: function () { },
-                emit: function (data) { },
-            };
+        /**
+         * Subscribing and emitting messages require JWT to be set
+         * Unsubscribing adn listening to events do not require JWT
+         * @param roomName
+         * @param callback
+         * @returns
+         */
+        MyobuProtocolClient.prototype.subscribe = function (roomName, callback) {
+            return __awaiter(this, void 0, void 0, function () {
+                var socket, jwt;
+                var _this = this;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            if (!this.socket) {
+                                socket = socket_ioClient.io(this.cloudServer);
+                                this.socket = socket;
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _a.sent();
+                            this.socket.emit("subscribe", roomName, jwt);
+                            this.socket.on("message", callback);
+                            return [2 /*return*/, {
+                                    unsubscribe: function () {
+                                        _this.socket.emit("unsubscribe", roomName);
+                                    },
+                                    publish: function (data) { return __awaiter(_this, void 0, void 0, function () {
+                                        var jwt;
+                                        return __generator(this, function (_a) {
+                                            switch (_a.label) {
+                                                case 0: return [4 /*yield*/, this.generateJWT()];
+                                                case 1:
+                                                    jwt = _a.sent();
+                                                    this.socket.emit("message", roomName, jwt, data);
+                                                    return [2 /*return*/];
+                                            }
+                                        });
+                                    }); },
+                                }];
+                    }
+                });
+            });
         };
-        return MyobuCloudClient;
+        return MyobuProtocolClient;
     }());
 
-    return MyobuCloudClient;
+    exports.appendPrefixToObjectKeys = appendPrefixToObjectKeys;
+    exports["default"] = MyobuProtocolClient;
+
+    Object.defineProperty(exports, '__esModule', { value: true });
 
 }));

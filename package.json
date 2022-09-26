@@ -1,9 +1,13 @@
 {
-  "name": "myobu-cloud-client",
+  "name": "myobu-protocol-client",
   "version": "0.0.1",
   "main": "out/src/index.js",
-  "repository": "git@github.com:myobu-guardians/myobu-cloud-client.git",
-  "author": "kirito.m",
+  "repository": "git@github.com:myobu-guardians/myobu-protocol-client.git",
+  "author": "kirito-m",
+  "contributors": [
+    "kirito-m",
+    "shd101wyy"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@rollup/plugin-json": "^4.1.0",

@@ -1,15 +1,25 @@
 import { ethers } from "ethers";
 import { MyobuDBJWT, MyobuDBRequest, MyobuRecord } from "./types";
-interface MyobuCloudClientConstructorProps {
+export interface MyobuPubSubHandler<EmitDataType> {
+    unsubscribe: () => void;
+    publish: (data: EmitDataType) => Promise<void>;
+}
+export declare function appendPrefixToObjectKeys(obj: {
+    [key: string]: any;
+}, prefix: string): {
+    [key: string]: any;
+};
+interface MyobuProtocolClientConstructorProps {
     signer?: ethers.Signer;
     cloudServer?: string;
     expiresIn?: number;
 }
-export default class MyobuCloudClient {
-    private signer?;
-    private cloudServer;
-    private expiresIn;
-    constructor({ signer, cloudServer, expiresIn, }: MyobuCloudClientConstructorProps);
+export default class MyobuProtocolClient {
+    signer?: ethers.Signer;
+    cloudServer: string;
+    expiresIn: number;
+    private socket?;
+    constructor({ signer, cloudServer, expiresIn, }: MyobuProtocolClientConstructorProps);
     /**
      * Generate the JWT for `address`
      * @param address
@@ -20,9 +30,13 @@ export default class MyobuCloudClient {
     }[]>;
     setExpiresIn(expiresIn: number): void;
     setSigner(signer: ethers.Signer): void;
-    subscribe(roomName: string, callback: (data: any) => void): {
-        unsubscribe: () => void;
-        emit: (data: any) => void;
-    };
+    /**
+     * Subscribing and emitting messages require JWT to be set
+     * Unsubscribing adn listening to events do not require JWT
+     * @param roomName
+     * @param callback
+     * @returns
+     */
+    subscribe<EmitDataType, ReceiveDataType>(roomName: string, callback: (data: ReceiveDataType, from: string) => void): Promise<MyobuPubSubHandler<EmitDataType>>;
 }
 export {};

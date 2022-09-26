@@ -1,4 +1,4 @@
-# Myobu Cloud
+# Myobu Protocol
 
 **Work in progress**
 
@@ -10,7 +10,7 @@ We provide a cloud service for Myobu, which offers a Graph Database based on whi
 
 <!-- code_chunk_output -->
 
-- [Myobu Cloud](#myobu-cloud)
+- [Myobu Protocol](#myobu-protocol)
   - [Client code](#client-code)
   - [Data models](#data-models)
     - [Node](#node)
@@ -35,12 +35,12 @@ We provide a cloud service for Myobu, which offers a Graph Database based on whi
 ## Client code
 
 ```typescript
-import { MyobuCloudClient } from "myobu-cloud-client";
+import { MyobuProtocolClient } from "myobu-protocol-client";
 import { ethers } from "ethers";
 
 const signer = ... //get ethers signer...
 
-const client = new MyobuCloudClient({
+const client = new MyobuProtocolClient({
   signer, // Needs the wallet to sign transactions
   cloudServer: "http://cloud.myobu.io/",
   expiresIn: 1000 * 60 * 60 * 24 * 365, // 1 year
@@ -52,7 +52,7 @@ const client = new MyobuCloudClient({
 ### Node
 
 A node has `labels` to identify its type and `props` (properties) that decribes its data.
-You can create a node in Myobu Cloud like below:
+You can create a node in Myobu Protocol like below:
 
 ```typescript
 const profileNode = await client.db({

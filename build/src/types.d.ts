@@ -15,14 +15,14 @@ export interface MyobuDBJWTPayload {
      * Expiration time
      */
     exp: number;
-    /**
-     * The arbitrary data that the issuer wants to include in the JWT.
-     */
-    msg?: string;
 }
 export declare type MyobuDBJWTSignature = string;
 export interface MyobuDBJWT {
+    message?: string;
     payload: MyobuDBJWTPayload;
+    /**
+     * Signature is generated from `message + JSON.stringify(payload)`
+     */
     signature: MyobuDBJWTSignature;
 }
 export declare enum MyobuDBOrder {
@@ -70,14 +70,37 @@ export declare type MyobuDBWhereClauseValue = {
 } | {
     $endsWith: string;
 };
+export interface MyobuDBLabelACL {
+    node: {
+        minHold: number;
+        minStake: number;
+        relationship: string;
+        "!relationship": string;
+    };
+}
+export interface MyobuDBNodeACL {
+    relationship: {
+        minHold: number;
+        minStake: number;
+        relationship: string;
+        "!relationship": string;
+    };
+}
 export declare type MyobuDBWhereClause = {
     [key: string]: MyobuDBWhereClauseValue;
 };
 export declare type MyobuDBRequest = {
     match?: (MyobuDBNode | MyobuDBRelationship)[];
     create?: (MyobuDBNode | MyobuDBRelationship)[];
+    merge?: (MyobuDBNode | MyobuDBRelationship)[];
     delete?: string[];
     set?: {
+        [key: string]: any;
+    };
+    onMatch?: {
+        [key: string]: any;
+    };
+    onCreate?: {
         [key: string]: any;
     };
     where?: MyobuDBWhereClause;
@@ -87,5 +110,20 @@ export declare type MyobuDBRequest = {
         [key: string]: MyobuDBOrder;
     };
     return?: string[];
+    /**
+     * List constraints of label.
+     */
+    listConstraints?: string;
+    /**
+     * Drop constraints by constraint names
+     */
+    dropConstraints?: string[];
+    /**
+     * Create constraints
+     */
+    createConstraints?: {
+        label: string;
+        unique: string[][];
+    };
     jwt?: MyobuDBJWT;
 };
