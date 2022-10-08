@@ -110,6 +110,14 @@ export interface MyobuDBNodeACL {
   };
 }
 
+export type MyobuDBReturnValue =
+  | string
+  | {
+      key: string;
+      count?: boolean;
+      as?: string;
+    };
+
 export type MyobuDBWhereClause = /*
   | {
       $and: MyobuDBWhereClause[];
@@ -140,7 +148,7 @@ export type MyobuDBRequest = {
   orderBy?: {
     [key: string]: MyobuDBOrder;
   };
-  return?: string[];
+  return?: MyobuDBReturnValue[];
 
   // Constraints
   /**
