@@ -86,6 +86,11 @@ export interface MyobuDBNodeACL {
         "!relationship": string;
     };
 }
+export declare type MyobuDBReturnValue = string | {
+    key: string;
+    count?: boolean;
+    as?: string;
+};
 export declare type MyobuDBWhereClause = {
     [key: string]: MyobuDBWhereClauseValue;
 };
@@ -109,7 +114,7 @@ export declare type MyobuDBRequest = {
     orderBy?: {
         [key: string]: MyobuDBOrder;
     };
-    return?: string[];
+    return?: MyobuDBReturnValue[];
     /**
      * List constraints of label.
      */
