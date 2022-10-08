@@ -1,6 +1,6 @@
 {
   "name": "myobu-protocol-client",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "out/src/index.js",
   "repository": "git@github.com:myobu-guardians/myobu-protocol-client.git",
   "author": "kirito-m",
