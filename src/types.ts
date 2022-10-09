@@ -90,6 +90,9 @@ export type MyobuDBWhereClauseValue =
     }
   | {
       $endsWith: string;
+    }
+  | {
+      $labels: string[];
     };
 
 export interface MyobuDBLabelACL {
