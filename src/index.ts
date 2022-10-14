@@ -126,6 +126,7 @@ JWT:`;
       request.merge ||
       request.set ||
       request.delete ||
+      request.detachDelete ||
       request.createConstraints ||
       request.dropConstraints
     ) {

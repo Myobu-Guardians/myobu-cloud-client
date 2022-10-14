@@ -260,6 +260,7 @@ await client.db({
   skip: 10,
   limit: 5,
   delete: ["people", "r", "city"],
+  detachDelete: ["city"], // When you want to delete a node and any relationship going to or from it, use DETACH DELETE.
   return: ["people"],
 });
 ```

@@ -145,6 +145,7 @@
                                 request.merge ||
                                 request.set ||
                                 request.delete ||
+                                request.detachDelete ||
                                 request.createConstraints ||
                                 request.dropConstraints)) return [3 /*break*/, 2];
                             _a = request;

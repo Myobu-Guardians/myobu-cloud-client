@@ -69,6 +69,8 @@ export declare type MyobuDBWhereClauseValue = {
     $startsWith: string;
 } | {
     $endsWith: string;
+} | {
+    $labels: string[];
 };
 export interface MyobuDBLabelACL {
     node: {
@@ -99,6 +101,7 @@ export declare type MyobuDBRequest = {
     create?: (MyobuDBNode | MyobuDBRelationship)[];
     merge?: (MyobuDBNode | MyobuDBRelationship)[];
     delete?: string[];
+    detachDelete?: string[];
     set?: {
         [key: string]: any;
     };

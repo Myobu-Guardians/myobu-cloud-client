@@ -136,6 +136,7 @@ export type MyobuDBRequest = {
   create?: (MyobuDBNode | MyobuDBRelationship)[];
   merge?: (MyobuDBNode | MyobuDBRelationship)[];
   delete?: string[];
+  detachDelete?: string[];
   set?: {
     [key: string]: any;
   };
