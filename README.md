@@ -142,16 +142,16 @@ const profileNode = await client.db({
       labels: ["MNS"],
       props: {
         name: "kirito",
-      }
+      },
+      onMatch: {
+        "profile.fetched": "$now",
+      },
+      onCreate: {
+        "profile.created": "$now",
+        "profile.fetched": "$now",
+      },
     }
   ],
-  onMatch: {
-    "profile.fetched": "$now",
-  },
-  onCreate: {
-    "profile.created": "$now",
-    "profile.fetched": "$now",
-  },
   return ["profile"]
 })
 ```
