@@ -96,19 +96,24 @@ export declare type MyobuDBReturnValue = string | {
 export declare type MyobuDBWhereClause = {
     [key: string]: MyobuDBWhereClauseValue;
 };
-export declare type MyobuDBRequest = {
-    match?: (MyobuDBNode | MyobuDBRelationship)[];
-    create?: (MyobuDBNode | MyobuDBRelationship)[];
-    merge?: (MyobuDBNode | MyobuDBRelationship)[];
-    delete?: string[];
-    detachDelete?: string[];
-    set?: {
-        [key: string]: any;
-    };
+export interface MergeOnMatchOnCreate {
     onMatch?: {
         [key: string]: any;
     };
     onCreate?: {
+        [key: string]: any;
+    };
+}
+export declare type MyobuDBRequest = {
+    match?: (MyobuDBNode | MyobuDBRelationship)[];
+    create?: (MyobuDBNode | MyobuDBRelationship)[];
+    /**
+     * For MERGE on relationships, we don't accept node props.
+     */
+    merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
+    delete?: string[];
+    detachDelete?: string[];
+    set?: {
         [key: string]: any;
     };
     where?: MyobuDBWhereClause;
