@@ -119,6 +119,7 @@ export type MyobuDBReturnValue =
       key: string;
       count?: boolean;
       as?: string;
+      distinct?: boolean;
     };
 
 export type MyobuDBWhereClause = /*

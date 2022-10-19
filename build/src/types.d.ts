@@ -92,6 +92,7 @@ export declare type MyobuDBReturnValue = string | {
     key: string;
     count?: boolean;
     as?: string;
+    distinct?: boolean;
 };
 export declare type MyobuDBWhereClause = {
     [key: string]: MyobuDBWhereClauseValue;
