@@ -28,6 +28,9 @@ export default class MyobuProtocolClient {
     db(request: MyobuDBRequest): Promise<{
         [key: string]: MyobuRecord;
     }[]>;
+    uploadImages(files: File[]): Promise<{
+        urls: (string | null)[];
+    }>;
     setExpiresIn(expiresIn: number): void;
     setSigner(signer: ethers.Signer): void;
     /**

@@ -305,6 +305,15 @@ emit("Message"); // Send message to `roomId`
 unsubscribe(); // Unsubscribe from `roomId`
 ```
 
+## Image upload
+
+We upload images to imgur.com using their [nice API](https://api.imgur.com/endpoints/image#image-upload).
+
+```typescript
+const files: File[] = []; // Your image files.
+const { urls } = await client.uploadImages(files);
+```
+
 ## Ownership
 
 Each node has an owner.
@@ -341,6 +350,7 @@ await client.db({
             minStake: 100, // Minimum number of Myobu you need to stake to create a node with this label
             relationship: "ALLOW_CREATE", // The relationship type to address required to create a node with this label
             "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a node with this label
+            origins: ["https://test.com"],
           },
         }),
       },

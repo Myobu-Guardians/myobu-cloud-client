@@ -57,6 +57,18 @@
         }
     }
 
+    function __values(o) {
+        var s = typeof Symbol === "function" && Symbol.iterator, m = s && o[s], i = 0;
+        if (m) return m.call(o);
+        if (o && typeof o.length === "number") return {
+            next: function () {
+                if (o && i >= o.length) o = void 0;
+                return { value: o && o[i++], done: !o };
+            }
+        };
+        throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+    }
+
     function appendPrefixToObjectKeys(obj, prefix) {
         var newObj = {};
         for (var key in obj) {
@@ -169,6 +181,51 @@
                             _b = Error.bind;
                             return [4 /*yield*/, res.text()];
                         case 6: throw new (_b.apply(Error, [void 0, _c.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.uploadImages = function (files) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, formData, files_1, files_1_1, file, res, _a;
+                var e_1, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _c.sent();
+                            formData = new FormData();
+                            try {
+                                for (files_1 = __values(files), files_1_1 = files_1.next(); !files_1_1.done; files_1_1 = files_1.next()) {
+                                    file = files_1_1.value;
+                                    formData.append("file[]", file);
+                                }
+                            }
+                            catch (e_1_1) { e_1 = { error: e_1_1 }; }
+                            finally {
+                                try {
+                                    if (files_1_1 && !files_1_1.done && (_b = files_1.return)) _b.call(files_1);
+                                }
+                                finally { if (e_1) throw e_1.error; }
+                            }
+                            formData.append("jwt", JSON.stringify(jwt));
+                            return [4 /*yield*/, fetch("".concat(this.server, "/image"), {
+                                    method: "POST",
+                                    body: formData,
+                                })];
+                        case 2:
+                            res = _c.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _c.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _c.sent()]))();
                     }
                 });
             });

@@ -148,6 +148,29 @@ JWT:`;
     }
   }
 
+  async uploadImages(files: File[]): Promise<{ urls: (string | null)[] }> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const formData = new FormData();
+    for (const file of files) {
+      formData.append("file[]", file);
+    }
+    formData.append("jwt", JSON.stringify(jwt));
+
+    const res = await fetch(`${this.server}/image`, {
+      method: "POST",
+      body: formData,
+    });
+    if (res.status === 200) {
+      return await res.json();
+    } else {
+      throw new Error(await res.text());
+    }
+  }
+
   setExpiresIn(expiresIn: number) {
     this.expiresIn = expiresIn;
   }
