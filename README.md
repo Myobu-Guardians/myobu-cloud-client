@@ -385,6 +385,34 @@ await client.db({
 });
 ```
 
+## Label schema
+
+If you own the label, you can define the schema of the label. Then when other user create/update the nodes with the label, the schema will be checked.
+
+- Set label schema
+
+```typescript
+await client.setLabelSchema({
+  label: "Address",
+  properties: {
+    lines: {
+      type: "array",
+      items: { type: "string" },
+    },
+    zip: { type: "string" },
+    city: { type: "string" },
+    country: { type: "string" },
+  },
+  required: ["country"],
+});
+```
+
+- Get label schema
+
+```typescript
+const schema = await client.getLabelSchema(labelName);
+```
+
 ## Triggers
 
 `To be implemented`

@@ -3,6 +3,8 @@ import {
   MyobuDBJWT,
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,
+  MyobuDBLabelSchema,
+  MyobuDBLabelSchemaRequest,
   MyobuDBRequest,
   MyobuRecord,
 } from "./types";
@@ -213,5 +215,36 @@ JWT:`;
         this.socket.emit("message", roomName, jwt, data);
       },
     };
+  }
+
+  async setLabelSchema(schema: MyobuDBLabelSchema) {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBLabelSchemaRequest = {
+      jwt,
+      schema,
+    };
+    const res = await fetch(`${this.server}/label-schema`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async getLabelSchema(label: string): Promise<MyobuDBLabelSchema> {
+    const res = await fetch(`${this.server}/label-schema/${label}`);
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
   }
 }

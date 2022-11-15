@@ -181,3 +181,25 @@ export type MyobuDBRequest = {
   // JWT
   jwt?: MyobuDBJWT;
 };
+
+export interface MyobuDBLabelSchema {
+  label: string;
+  properties: { [key: string]: MyobuDBLabelSchemaProperty };
+  required?: string[];
+}
+
+export type MyobuDBLabelSchemaProperty =
+  | {
+      type: "string";
+      minLength?: number;
+      maxLength?: number;
+    }
+  | { type: "number" }
+  | { type: "boolean" }
+  | { type: "array"; items: MyobuDBLabelSchemaProperty };
+
+export interface MyobuDBLabelSchemaRequest {
+  schema: MyobuDBLabelSchema;
+  // JWT
+  jwt?: MyobuDBJWT;
+}
