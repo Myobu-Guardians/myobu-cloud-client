@@ -196,10 +196,23 @@ export type MyobuDBLabelSchemaProperty =
     }
   | { type: "number" }
   | { type: "boolean" }
-  | { type: "array"; items: MyobuDBLabelSchemaProperty };
+  | {
+      type: "array";
+      // items: MyobuDBLabelSchemaProperty
+    };
 
 export interface MyobuDBLabelSchemaRequest {
   schema: MyobuDBLabelSchema;
   // JWT
   jwt?: MyobuDBJWT;
+}
+
+export function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof obj.label === "string" &&
+    typeof obj.schema === "object" &&
+    obj.schema !== null
+  );
 }
