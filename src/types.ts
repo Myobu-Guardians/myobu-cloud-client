@@ -205,6 +205,8 @@ export interface MyobuDBLabelSchemaRequest {
   schema: MyobuDBLabelSchema;
   // JWT
   jwt?: MyobuDBJWT;
+  // Delete
+  delete?: boolean;
 }
 
 export function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema {
@@ -212,7 +214,7 @@ export function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema {
     typeof obj === "object" &&
     obj !== null &&
     typeof obj.label === "string" &&
-    typeof obj.schema === "object" &&
+    typeof obj.properties === "object" &&
     obj.schema !== null
   );
 }

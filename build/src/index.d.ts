@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { MyobuDBJWT, MyobuDBRequest, MyobuRecord } from "./types";
+import { MyobuDBJWT, MyobuDBLabelSchema, MyobuDBRequest, MyobuRecord } from "./types";
 export interface MyobuPubSubHandler<EmitDataType> {
     unsubscribe: () => void;
     publish: (data: EmitDataType) => Promise<void>;
@@ -41,5 +41,8 @@ export default class MyobuProtocolClient {
      * @returns
      */
     subscribe<EmitDataType, ReceiveDataType>(roomName: string, callback: (data: ReceiveDataType, from: string) => void): Promise<MyobuPubSubHandler<EmitDataType>>;
+    setLabelSchema(schema: MyobuDBLabelSchema): Promise<any>;
+    getLabelSchema(label: string): Promise<MyobuDBLabelSchema>;
+    deleteLabelSchema(label: string): Promise<any>;
 }
 export {};

@@ -141,3 +141,27 @@ export declare type MyobuDBRequest = {
     };
     jwt?: MyobuDBJWT;
 };
+export interface MyobuDBLabelSchema {
+    label: string;
+    properties: {
+        [key: string]: MyobuDBLabelSchemaProperty;
+    };
+    required?: string[];
+}
+export declare type MyobuDBLabelSchemaProperty = {
+    type: "string";
+    minLength?: number;
+    maxLength?: number;
+} | {
+    type: "number";
+} | {
+    type: "boolean";
+} | {
+    type: "array";
+};
+export interface MyobuDBLabelSchemaRequest {
+    schema: MyobuDBLabelSchema;
+    jwt?: MyobuDBJWT;
+    delete?: boolean;
+}
+export declare function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema;

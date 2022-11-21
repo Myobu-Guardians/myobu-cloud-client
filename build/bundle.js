@@ -284,6 +284,101 @@
                 });
             });
         };
+        MyobuProtocolClient.prototype.setLabelSchema = function (schema) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                schema: schema,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-schema"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getLabelSchema = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/label-schema/").concat(label))];
+                        case 1:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _b.sent()];
+                        case 3:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.deleteLabelSchema = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                schema: {
+                                    label: label,
+                                    properties: {},
+                                },
+                                delete: true,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-schema"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
         return MyobuProtocolClient;
     }());
 

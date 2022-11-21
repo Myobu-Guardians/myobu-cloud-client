@@ -413,6 +413,12 @@ await client.setLabelSchema({
 const schema = await client.getLabelSchema(labelName);
 ```
 
+- Delete label schema
+
+```typescript
+await client.deleteLabelSchema(labelName);
+```
+
 ## Triggers
 
 `To be implemented`
