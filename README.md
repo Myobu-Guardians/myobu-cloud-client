@@ -39,7 +39,7 @@ We provide a protocol service for Myobu, which offers:
     - [Ownership](#ownership)
     - [Snapshot](#snapshot)
     - [Label schema](#label-schema)
-    - [Label acl](#label-acl)
+    - [Label ACL](#label-acl)
     - [Triggers](#triggers)
   - [PubSub](#pubsub)
   - [Image upload](#image-upload)
