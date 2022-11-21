@@ -274,4 +274,20 @@ JWT:`;
     }
     throw new Error(await res.text());
   }
+
+  async getBalance(walletAddress: string): Promise<number> {
+    const res = await fetch(`${this.server}/balance/${walletAddress}`);
+    if (res.status === 200) {
+      return parseInt(await res.json());
+    }
+    throw new Error(await res.text());
+  }
+
+  async getVotingPower(walletAddress: string): Promise<number> {
+    const res = await fetch(`${this.server}/voting-power/${walletAddress}`);
+    if (res.status === 200) {
+      return parseInt(await res.json());
+    }
+    throw new Error(await res.text());
+  }
 }

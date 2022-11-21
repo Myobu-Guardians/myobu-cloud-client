@@ -79,8 +79,8 @@ Whenever the user needs to be authenticated, the client will sign a message usin
 
 #### Node
 
-A node has `labels` to identify its type and `props` (properties) that decribes its data.
-You can create a node in Myobu Protocol like below:
+A node has `labels` to identify its type and `props` (properties) that describe its data.
+You can create a node in Myobu Protocol like the below:
 
 ```typescript
 const profileNode = await client.db({
@@ -327,19 +327,20 @@ await client.db({
 ### Ownership
 
 Each node has an owner.
-The owner of the node could transfer its ownership to another address only is the node has been taken snapshot as NFT.
+The owner of the node could transfer its ownership to another address only if the node has taken snapshot as NFT.
 
 ### Snapshot
 
-Store nodes, relationships (subgraph) data in a snapshot on blockchain.
+Store nodes, and relationships (subgraph) data in a snapshot on blockchain.
 
 ```typescript
 // TODO: Implement the related smart contract
 await client.takeSnapshot(nodeId);
 ```
+
 ### Label schema
 
-If you own the label, you can define the schema of the label. Then when other user create/update the nodes with the label, the schema will be checked.
+If you own the label, you can define the schema of the label. Then when other users create/update the nodes with the label, the schema will be checked.
 
 - Set label schema
 
@@ -488,7 +489,7 @@ const { urls } = await client.uploadImages(files);
 
 ### Balance
 
-Get the user balance. This includes the amount of MYOBU token that user holds and the amount of MYOBU token that user has staked.
+Get the user balance. This includes the amount of MYOBU tokens that user holds and the amount of MYOBU tokens that user has staked.
 
 ```typescript
 const walletAddress = "0x1234567890";
