@@ -2,9 +2,19 @@
 
 **Work in progress**
 
-Myobu as a Service
+Myobu as a Service  
+https://protocol.myobu.io
 
-We provide a protocol service for Myobu, which offers a Graph Database based on which you could quickly build your own web3 application.
+We provide a protocol service for Myobu, which offers:
+
+1. Authentication
+2. Graph Database service.
+3. PubSub service.
+4. Image Upload service.
+5. MNS (Myobu Name Service).
+6. DAO service.
+
+---
 
 <!-- @import "[TOC]" {cmd="toc" depthFrom=1 depthTo=6 orderedList=false} -->
 
@@ -12,22 +22,33 @@ We provide a protocol service for Myobu, which offers a Graph Database based on 
 
 - [Myobu Protocol](#myobu-protocol)
   - [Client code](#client-code)
-  - [Data models](#data-models)
-    - [Node](#node)
-    - [Relationships](#relationships)
-  - [Upsert (Create or Update) using `merge`](#upsert-create-or-update-using-merge)
-  - [Query](#query)
-  - [Update](#update)
-  - [Delete](#delete)
-  - [Constraints for Label](#constraints-for-label)
-    - [List contraints](#list-contraints)
-    - [Create constraints](#create-constraints)
-    - [Delete constraints](#delete-constraints)
+  - [Authentication](#authentication)
+  - [Database](#database)
+    - [Models](#models)
+      - [Node](#node)
+      - [Relationships](#relationships)
+    - [Operations](#operations)
+      - [Upsert (Create or Update) using `merge`](#upsert-create-or-update-using-merge)
+      - [Query](#query)
+      - [Update](#update)
+      - [Delete](#delete)
+    - [Constraints for Label](#constraints-for-label)
+      - [List contraints](#list-contraints)
+      - [Create constraints](#create-constraints)
+      - [Delete constraints](#delete-constraints)
+    - [Ownership](#ownership)
+    - [Snapshot](#snapshot)
+    - [Label schema](#label-schema)
+    - [Label acl](#label-acl)
+    - [Triggers](#triggers)
   - [PubSub](#pubsub)
-  - [Ownership](#ownership)
-  - [Snapshot](#snapshot)
-  - [ACL](#acl)
-  - [Triggers](#triggers)
+  - [Image upload](#image-upload)
+  - [DAO](#dao)
+    - [Balance](#balance)
+    - [Voting power](#voting-power)
+    - [Delegation](#delegation)
+    - [DAO proposal](#dao-proposal)
+  - [MNS (Myobu Name Service)](#mns-myobu-name-service)
   - [Useful tools](#useful-tools)
 
 <!-- /code_chunk_output -->
@@ -47,9 +68,16 @@ const client = new MyobuProtocolClient({
 });
 ```
 
-## Data models
+## Authentication
 
-### Node
+The user will be authenticated using the `signer` provided in the constructor.
+Whenever the user needs to be authenticated, the client will sign a message using the `signer` and send it to the server to verify.
+
+## Database
+
+### Models
+
+#### Node
 
 A node has `labels` to identify its type and `props` (properties) that decribes its data.
 You can create a node in Myobu Protocol like below:
@@ -95,7 +123,7 @@ console.log(profileNode);
 > Node labels are strictly required to be camel-case, beginning with an upper-case character. VehicleOwner rather than vehicle_owner etc.
 > We only support `string`, `number`, `boolean`, and `null` types in `props` for now.
 
-### Relationships
+#### Relationships
 
 A relationship is a directed connection between two nodes.
 A relationship has a `type` and `props` (properties) to describe the relationship.
@@ -132,7 +160,9 @@ const relationship = await client.db({
 > In the future, the number of Myobu you hold (or staked) will decide how many relationships you can create.  
 > Relationship types are strictly required to be upper-case, using underscore to separate words. :OWNS_VEHICLE rather than :ownsVehicle etc.
 
-## Upsert (Create or Update) using `merge`
+### Operations
+
+#### Upsert (Create or Update) using `merge`
 
 ```typescript
 const profileNode = await client.db({
@@ -156,7 +186,7 @@ const profileNode = await client.db({
 })
 ```
 
-## Query
+#### Query
 
 ```typescript
 // Find people who lives in Mars and has age greater than 18 and less than 90
@@ -205,7 +235,7 @@ const result = await client.db({
 });
 ```
 
-## Update
+#### Update
 
 ```typescript
 await client.db({
@@ -230,7 +260,7 @@ await client.db({
 });
 ```
 
-## Delete
+#### Delete
 
 ```typescript
 await client.db({
@@ -265,9 +295,9 @@ await client.db({
 });
 ```
 
-## Constraints for Label
+### Constraints for Label
 
-### List contraints
+#### List contraints
 
 ```typescript
 await client.db({
@@ -275,7 +305,7 @@ await client.db({
 });
 ```
 
-### Create constraints
+#### Create constraints
 
 ```typescript
 await client.db({
@@ -286,7 +316,7 @@ await client.db({
 });
 ```
 
-### Delete constraints
+#### Delete constraints
 
 ```typescript
 await client.db({
@@ -294,32 +324,12 @@ await client.db({
 });
 ```
 
-## PubSub
-
-```typescript
-const { unsubscribe, emit } = await client.pubsub(roomId, (event) => {
-  // ...
-});
-
-emit("Message"); // Send message to `roomId`
-unsubscribe(); // Unsubscribe from `roomId`
-```
-
-## Image upload
-
-We upload images to imgur.com using their [nice API](https://api.imgur.com/endpoints/image#image-upload).
-
-```typescript
-const files: File[] = []; // Your image files.
-const { urls } = await client.uploadImages(files);
-```
-
-## Ownership
+### Ownership
 
 Each node has an owner.
 The owner of the node could transfer its ownership to another address only is the node has been taken snapshot as NFT.
 
-## Snapshot
+### Snapshot
 
 Store nodes, relationships (subgraph) data in a snapshot on blockchain.
 
@@ -327,8 +337,41 @@ Store nodes, relationships (subgraph) data in a snapshot on blockchain.
 // TODO: Implement the related smart contract
 await client.takeSnapshot(nodeId);
 ```
+### Label schema
 
-## ACL
+If you own the label, you can define the schema of the label. Then when other user create/update the nodes with the label, the schema will be checked.
+
+- Set label schema
+
+```typescript
+await client.setLabelSchema({
+  label: "Address",
+  properties: {
+    lines: {
+      type: "array",
+      items: { type: "string" },
+    },
+    zip: { type: "string" },
+    city: { type: "string" },
+    country: { type: "string" },
+  },
+  required: ["country"],
+});
+```
+
+- Get label schema
+
+```typescript
+const schema = await client.getLabelSchema(labelName);
+```
+
+- Delete label schema
+
+```typescript
+await client.deleteLabelSchema(labelName);
+```
+
+### Label ACL
 
 `To be implemented`
 
@@ -346,8 +389,7 @@ await client.db({
         name: "MyLabel",
         _acl: JSON.stringify({
           node: {
-            minHold: 100, // Minimum number of Myobu you need to hold to create a node with this label
-            minStake: 100, // Minimum number of Myobu you need to stake to create a node with this label
+            minBalance: 100, // Minimum amount of Myobu you need to hold to create a node with this label. Check `DAO` section later.
             relationship: "ALLOW_CREATE", // The relationship type to address required to create a node with this label
             "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a node with this label
             origins: ["https://test.com"],
@@ -385,41 +427,7 @@ await client.db({
 });
 ```
 
-## Label schema
-
-If you own the label, you can define the schema of the label. Then when other user create/update the nodes with the label, the schema will be checked.
-
-- Set label schema
-
-```typescript
-await client.setLabelSchema({
-  label: "Address",
-  properties: {
-    lines: {
-      type: "array",
-      items: { type: "string" },
-    },
-    zip: { type: "string" },
-    city: { type: "string" },
-    country: { type: "string" },
-  },
-  required: ["country"],
-});
-```
-
-- Get label schema
-
-```typescript
-const schema = await client.getLabelSchema(labelName);
-```
-
-- Delete label schema
-
-```typescript
-await client.deleteLabelSchema(labelName);
-```
-
-## Triggers
+### Triggers
 
 `To be implemented`
 
@@ -452,6 +460,141 @@ await client.db({
     },
   ],
 });
+```
+
+## PubSub
+
+```typescript
+const { unsubscribe, emit } = await client.pubsub(roomId, (event) => {
+  // ...
+});
+
+emit("Message"); // Send message to `roomId`
+unsubscribe(); // Unsubscribe from `roomId`
+```
+
+## Image upload
+
+We upload images to imgur.com using their [nice API](https://api.imgur.com/endpoints/image#image-upload).
+
+```typescript
+const files: File[] = []; // Your image files.
+const { urls } = await client.uploadImages(files);
+```
+
+## DAO
+
+`Getting implemented`
+
+### Balance
+
+Get the user balance. This includes the amount of MYOBU token that user holds and the amount of MYOBU token that user has staked.
+
+```typescript
+const walletAddress = "0x1234567890";
+const balance = await client.getBalance(walletAddress);
+```
+
+### Voting power
+
+Get the user's voting power. The voting power is the weighted balance of the user's staked MYOBU token.
+
+```typescript
+const walletAddress = "0x1234567890";
+const votingPower = await client.getVotingPower(walletAddress);
+```
+
+### Delegation
+
+`To be implemented`
+
+### DAO proposal
+
+`To be implemented`
+
+DAO proposal support
+
+```typescript
+// Create a proposal
+const proposal = {
+  title: "Proposal title",
+  description: "Proposal description",
+  voteType: "SINGLE_CHOICE", // SINGLE_CHOICE, MULTI_CHOICE, RANKING
+  options: [
+    {
+      title: "Option 1",
+      description: "Option 1 description",
+    },
+    {
+      title: "Option 2",
+      description: "Option 2 description",
+    },
+  ],
+  startAt: new Date().getTime(),
+  endAt: new Date().getTime() + 1000 * 60 * 60 * 24 * 7, // 7 days
+  minVotingPower: 100, // Minimum voting power required to vote
+};
+const _proposal = await client.createProposal(proposal);
+const __proposal = await client.getProposal(_proposal.id);
+
+// Get minimum voting power required to make a proposal
+const minVotingPowerRequiredToCreateProposal =
+  await client.getMinVotingPowerRequiredToCreateProposal(_proposal.id);
+
+// Vote for a proposal
+await client.voteForProposal(_proposal.id, [
+  {
+    optionId: _proposal.options[0].id,
+  },
+]);
+
+// Unvote for a proposal
+await client.unvoteForProposal(_proposal.id);
+```
+
+## MNS (Myobu Name Service)
+
+```typescript
+// Create an MNS
+const profile = await client.upsertMNS({
+  name: "kirito",
+  displayName: "Kirito",
+
+  /*
+  email?: string;
+  avatar?: string;
+  wallpaper?: string;
+  description?: string;
+
+  // Social medias
+  url?: string;
+  twitter?: string;
+  discord?: string;
+  github?: string;
+  telegram?: string;
+  reddit?: string;
+  youtube?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  twitch?: string;
+  linkedin?: string;
+
+  // Wallet addresses
+  eth?: string;
+  btc?: string;
+*/
+});
+
+// Get an MNS
+// * by name
+const profile = await client.getMNS("kirito");
+// * by wallet address
+const profile = await client.getMNS("0x1234567890");
+
+// Get minimum balance required to create an MNS
+const minBalanceRequiredToCreateMNS =
+  await client.getMinBalanceRequiredToCreateMNS();
 ```
 
 ## Useful tools
