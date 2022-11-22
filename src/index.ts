@@ -1,7 +1,6 @@
 import { ethers } from "ethers";
 import {
   MNSProfile,
-  MNSProfileRequest,
   MyobuDBJWT,
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,

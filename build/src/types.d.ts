@@ -187,7 +187,3 @@ export interface MNSProfile {
     eth?: string;
     btc?: string;
 }
-export interface MNSProfileRequest {
-    profile: MNSProfile;
-    jwt: MyobuDBJWT;
-}
