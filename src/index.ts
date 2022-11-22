@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
 import {
+  MNSProfile,
+  MNSProfileRequest,
   MyobuDBJWT,
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,
@@ -9,6 +11,9 @@ import {
   MyobuRecord,
 } from "./types";
 import { io } from "socket.io-client";
+import { isMNSNameValid } from "./utils";
+export * from "./types";
+export * from "./utils";
 
 export interface MyobuPubSubHandler<EmitDataType> {
   unsubscribe: () => void;
@@ -289,5 +294,59 @@ JWT:`;
       return parseInt(await res.json());
     }
     throw new Error(await res.text());
+  }
+
+  async upsertMNS(profile: MNSProfile): Promise<MNSProfile> {
+    if (!isMNSNameValid(profile.name)) {
+      throw new Error(`Name ${profile.name} is not valid`);
+    }
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const result = await this.db({
+      merge: [
+        {
+          key: "mns",
+          labels: ["MNS"],
+          props: {
+            _owner: await this.signer.getAddress(),
+          },
+          onCreate: appendPrefixToObjectKeys(profile, "mns."),
+          onMatch: appendPrefixToObjectKeys(profile, "mns."),
+        },
+      ],
+      return: ["mns"],
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to upsert MNS");
+    } else {
+      return result[0]["mns"]["props"] as any;
+    }
+  }
+
+  async getMNS(addressOrName: string): Promise<MNSProfile | undefined> {
+    if (addressOrName.endsWith(".m")) {
+      addressOrName = addressOrName.slice(0, -2);
+    }
+    const result = await this.db({
+      match: [
+        {
+          key: "mns",
+          labels: ["MNS"],
+          props: {
+            ...(addressOrName.startsWith("0x")
+              ? { _owner: addressOrName }
+              : { name: addressOrName }),
+          },
+        },
+      ],
+      return: ["mns"],
+    });
+    if (result.length === 0) {
+      return undefined;
+    } else {
+      return result[0]["mns"]["props"] as any;
+    }
   }
 }

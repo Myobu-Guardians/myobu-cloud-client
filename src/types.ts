@@ -218,3 +218,34 @@ export function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema {
     obj.schema !== null
   );
 }
+export interface MNSProfile {
+  name: string;
+  displayName: string;
+  email?: string;
+  avatar?: string;
+  wallpaper?: string;
+  description?: string;
+
+  // Social medias
+  url?: string;
+  twitter?: string;
+  discord?: string;
+  github?: string;
+  telegram?: string;
+  reddit?: string;
+  youtube?: string;
+  instagram?: string;
+  facebook?: string;
+  tiktok?: string;
+  twitch?: string;
+  linkedin?: string;
+
+  // Wallet addresses
+  eth?: string;
+  btc?: string;
+}
+
+export interface MNSProfileRequest {
+  profile: MNSProfile;
+  jwt: MyobuDBJWT;
+}

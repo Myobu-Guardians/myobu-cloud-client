@@ -165,3 +165,29 @@ export interface MyobuDBLabelSchemaRequest {
     delete?: boolean;
 }
 export declare function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema;
+export interface MNSProfile {
+    name: string;
+    displayName: string;
+    email?: string;
+    avatar?: string;
+    wallpaper?: string;
+    description?: string;
+    url?: string;
+    twitter?: string;
+    discord?: string;
+    github?: string;
+    telegram?: string;
+    reddit?: string;
+    youtube?: string;
+    instagram?: string;
+    facebook?: string;
+    tiktok?: string;
+    twitch?: string;
+    linkedin?: string;
+    eth?: string;
+    btc?: string;
+}
+export interface MNSProfileRequest {
+    profile: MNSProfile;
+    jwt: MyobuDBJWT;
+}

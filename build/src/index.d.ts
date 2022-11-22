@@ -1,5 +1,7 @@
 import { ethers } from "ethers";
-import { MyobuDBJWT, MyobuDBLabelSchema, MyobuDBRequest, MyobuRecord } from "./types";
+import { MNSProfile, MyobuDBJWT, MyobuDBLabelSchema, MyobuDBRequest, MyobuRecord } from "./types";
+export * from "./types";
+export * from "./utils";
 export interface MyobuPubSubHandler<EmitDataType> {
     unsubscribe: () => void;
     publish: (data: EmitDataType) => Promise<void>;
@@ -44,5 +46,8 @@ export default class MyobuProtocolClient {
     setLabelSchema(schema: MyobuDBLabelSchema): Promise<any>;
     getLabelSchema(label: string): Promise<MyobuDBLabelSchema>;
     deleteLabelSchema(label: string): Promise<any>;
+    getBalance(walletAddress: string): Promise<number>;
+    getVotingPower(walletAddress: string): Promise<number>;
+    upsertMNS(profile: MNSProfile): Promise<MNSProfile>;
+    getMNS(addressOrName: string): Promise<MNSProfile | undefined>;
 }
-export {};

@@ -19,6 +19,17 @@
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
 
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
+
     function __awaiter(thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -67,6 +78,27 @@
             }
         };
         throw new TypeError(s ? "Object is not iterable." : "Symbol.iterator is not defined.");
+    }
+
+    /**
+     * We only support a-z and number for now, all lowercase
+     * @param name
+     */
+    function isMNSNameValid(name) {
+        return /^[a-z0-9]+$/.test(name);
+    }
+
+    exports.MyobuDBOrder = void 0;
+    (function (MyobuDBOrder) {
+        MyobuDBOrder["ASC"] = "ASC";
+        MyobuDBOrder["DESC"] = "DESC";
+    })(exports.MyobuDBOrder || (exports.MyobuDBOrder = {}));
+    function isMyobuDBLabelSchema(obj) {
+        return (typeof obj === "object" &&
+            obj !== null &&
+            typeof obj.label === "string" &&
+            typeof obj.properties === "object" &&
+            obj.schema !== null);
     }
 
     function appendPrefixToObjectKeys(obj, prefix) {
@@ -379,11 +411,128 @@
                 });
             });
         };
+        MyobuProtocolClient.prototype.getBalance = function (walletAddress) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/balance/").concat(walletAddress))];
+                        case 1:
+                            res = _c.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            _a = parseInt;
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _a.apply(void 0, [_c.sent()])];
+                        case 3:
+                            _b = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_b.apply(Error, [void 0, _c.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getVotingPower = function (walletAddress) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a, _b;
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/voting-power/").concat(walletAddress))];
+                        case 1:
+                            res = _c.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            _a = parseInt;
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _a.apply(void 0, [_c.sent()])];
+                        case 3:
+                            _b = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_b.apply(Error, [void 0, _c.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.upsertMNS = function (profile) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result, _a;
+                var _b, _c, _d;
+                return __generator(this, function (_e) {
+                    switch (_e.label) {
+                        case 0:
+                            if (!isMNSNameValid(profile.name)) {
+                                throw new Error("Name ".concat(profile.name, " is not valid"));
+                            }
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            _a = this.db;
+                            _b = {};
+                            _c = {
+                                key: "mns",
+                                labels: ["MNS"]
+                            };
+                            _d = {};
+                            return [4 /*yield*/, this.signer.getAddress()];
+                        case 1: return [4 /*yield*/, _a.apply(this, [(_b.merge = [
+                                    (_c.props = (_d._owner = _e.sent(),
+                                        _d),
+                                        _c.onCreate = appendPrefixToObjectKeys(profile, "mns."),
+                                        _c.onMatch = appendPrefixToObjectKeys(profile, "mns."),
+                                        _c)
+                                ],
+                                    _b.return = ["mns"],
+                                    _b)])];
+                        case 2:
+                            result = _e.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to upsert MNS");
+                            }
+                            else {
+                                return [2 /*return*/, result[0]["mns"]["props"]];
+                            }
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getMNS = function (addressOrName) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (addressOrName.endsWith(".m")) {
+                                addressOrName = addressOrName.slice(0, -2);
+                            }
+                            return [4 /*yield*/, this.db({
+                                    match: [
+                                        {
+                                            key: "mns",
+                                            labels: ["MNS"],
+                                            props: __assign({}, (addressOrName.startsWith("0x")
+                                                ? { _owner: addressOrName }
+                                                : { name: addressOrName })),
+                                        },
+                                    ],
+                                    return: ["mns"],
+                                })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                return [2 /*return*/, undefined];
+                            }
+                            else {
+                                return [2 /*return*/, result[0]["mns"]["props"]];
+                            }
+                    }
+                });
+            });
+        };
         return MyobuProtocolClient;
     }());
 
     exports.appendPrefixToObjectKeys = appendPrefixToObjectKeys;
     exports["default"] = MyobuProtocolClient;
+    exports.isMNSNameValid = isMNSNameValid;
+    exports.isMyobuDBLabelSchema = isMyobuDBLabelSchema;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
