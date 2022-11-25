@@ -4,6 +4,8 @@ import {
   MyobuDBJWT,
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,
+  MyobuDBLabelACL,
+  MyobuDBLabelACLRequest,
   MyobuDBLabelSchema,
   MyobuDBLabelSchemaRequest,
   MyobuDBRequest,
@@ -267,6 +269,66 @@ JWT:`;
       delete: true,
     };
     const res = await fetch(`${this.server}/label-schema`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async setLabelACL(acl: MyobuDBLabelACL) {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBLabelACLRequest = {
+      jwt,
+      acl,
+    };
+    const res = await fetch(`${this.server}/label-acl`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async getLabelACL(label: string): Promise<MyobuDBLabelACL> {
+    const res = await fetch(`${this.server}/label-acl/${label}`);
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async deleteLabelACL(label: string) {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBLabelACLRequest = {
+      jwt,
+      acl: {
+        label,
+        node: {
+          write: {},
+        },
+      },
+      delete: true,
+    };
+    const res = await fetch(`${this.server}/label-acl`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -374,58 +374,33 @@ await client.deleteLabelSchema(labelName);
 
 ### Label ACL
 
-`To be implemented`
+Access Control List (ACL) is a list of permissions for a label.
 
-Access Control List (ACL) is a list of permissions for a label or node.
-
-- **Label**
+- Set label ACL
 
 ```typescript
-await client.db({
-  create: [
-    {
-      key: "myLabelWithACL",
-      labels: ["Label"],
-      props: {
-        name: "MyLabel",
-        _acl: JSON.stringify({
-          node: {
-            minBalance: 100, // Minimum amount of Myobu you need to hold to create a node with this label. Check `DAO` section later.
-            relationship: "ALLOW_CREATE", // The relationship type to address required to create a node with this label
-            "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a node with this label
-            origins: ["https://test.com"],
-          },
-        }),
-      },
+await client.setLabelACL({
+  label: "Address",
+  node: {
+    write: {
+      // Create | Update | Delete
+      minBalance: 100, // Minimum Myobu balance you need to create a node with this label. Check `DAO` section later.
+      minVotingPower: 100, // Minimum voting power you need to create a node with this label. Check `DAO` section later.
     },
-  ],
-  return: ["myLabelWithACL"],
+  },
 });
 ```
 
-- **Node**
+- Get label ACL
 
 ```typescript
-await client.db({
-  create: [
-    {
-      key: "myNodeWithACL",
-      labels: ["MNS"],
-      props: {
-        name: "MyNode",
-        _acl: JSON.stringify({
-          relationship: {
-            minHold: 100, // Minimum number of Myobu you need to hold to create a relationship with this node
-            minStake: 100, // Minimum number of Myobu you need to stake to create a relationship with this node
-            relationship: "ALLOW_CREATE", // The relationship type to address required to create a relationship with this node
-            "!relationship": "DENY_CREATE", // The relationship type to address not allowed to create a relationship with this node
-          },
-        }),
-      },
-    },
-  ],
-  return: ["myNodeWithACL"],
-});
+await client.getLabelACL(labelName);
+```
+
+- Delete label ACL
+
+```typescript
+await client.deleteLabelACL(labelName);
 ```
 
 ### Triggers
@@ -489,7 +464,7 @@ const { urls } = await client.uploadImages(files);
 
 ### Balance
 
-Get the user balance. This includes the amount of MYOBU tokens that user holds and the amount of MYOBU tokens that user has staked.
+Get the user balance. This includes the amount of MYOBU tokens that the user holds and the amount of MYOBU tokens that the user has staked.
 
 ```typescript
 const walletAddress = "0x1234567890";

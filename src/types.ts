@@ -95,24 +95,6 @@ export type MyobuDBWhereClauseValue =
       $labels: string[];
     };
 
-export interface MyobuDBLabelACL {
-  node: {
-    minHold: number;
-    minStake: number;
-    relationship: string;
-    "!relationship": string;
-  };
-}
-
-export interface MyobuDBNodeACL {
-  relationship: {
-    minHold: number;
-    minStake: number;
-    relationship: string;
-    "!relationship": string;
-  };
-}
-
 export type MyobuDBReturnValue =
   | string
   | {
@@ -218,6 +200,36 @@ export function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema {
     obj.schema !== null
   );
 }
+
+export interface MyobuDBLabelACL {
+  label: string;
+  node: {
+    write: {
+      minBalance?: number;
+      minVotingPower?: number;
+    };
+  };
+}
+
+export interface MyobuDBLabelACLRequest {
+  acl: MyobuDBLabelACL;
+  // JWT
+  jwt?: MyobuDBJWT;
+  // Delete
+  delete?: boolean;
+}
+
+export function isMyobuDBLabelACL(obj: any): obj is MyobuDBLabelACL {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof obj.label === "string" &&
+    typeof obj.node === "object" &&
+    obj.node !== null &&
+    typeof obj.node.write === "object"
+  );
+}
+
 export interface MNSProfile {
   name: string;
   displayName: string;
