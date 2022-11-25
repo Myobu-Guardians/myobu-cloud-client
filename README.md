@@ -40,7 +40,7 @@ We provide a protocol service for Myobu, which offers:
     - [Snapshot](#snapshot)
     - [Label schema](#label-schema)
     - [Label ACL](#label-acl)
-    - [Triggers](#triggers)
+    - [Label triggers](#label-triggers)
   - [PubSub](#pubsub)
   - [Image upload](#image-upload)
   - [DAO](#dao)
@@ -50,6 +50,7 @@ We provide a protocol service for Myobu, which offers:
     - [DAO proposal](#dao-proposal)
   - [MNS (Myobu Name Service)](#mns-myobu-name-service)
   - [Useful tools](#useful-tools)
+  - [References](#references)
 
 <!-- /code_chunk_output -->
 
@@ -407,34 +408,24 @@ await client.deleteLabelACL(labelName);
 
 `To be implemented`
 
-You can set triggers for a specific node
+You can set triggers for a specific Label
 
 ```typescript
-await client.db({
-  create: [
+await client.setLabelTrigger({
+  label: "Profile",
+  triggers: [
     {
-      key: "profile",
-      labels: ["MNS"],
-      props: {
-        name: "kirito",
-        followers: 0,
-        followings: 0,
-      },
-      triggers: [
-        {
-          type: "FOLLOWS", // When someone follows this node
-          from: {
-            label: "MNS",
-          }
-          set: {
-            $inc: {
-              "profile.followers": 1,
-            },
-          },
+      type: "FOLLOWS", // When someone follows this node
+      from: {
+        label: "MNS",
+      }
+      set: {
+        $inc: {
+          "followers": 1,
         },
-      ],
+      },
     },
-  ],
+  ]
 });
 ```
 
@@ -495,15 +486,13 @@ DAO proposal support
 const proposal = {
   title: "Proposal title",
   description: "Proposal description",
-  voteType: "SINGLE_CHOICE", // SINGLE_CHOICE, MULTI_CHOICE, RANKING
-  options: [
+  voteType: "SINGLE_CHOICE", // SINGLE_CHOICE, MULTI_CHOICE, RANKED_CHOICE
+  choices: [
     {
-      title: "Option 1",
-      description: "Option 1 description",
+      description: "Choice 1 description",
     },
     {
-      title: "Option 2",
-      description: "Option 2 description",
+      description: "Choice 2 description",
     },
   ],
   startAt: new Date().getTime(),
@@ -511,16 +500,29 @@ const proposal = {
   minVotingPower: 100, // Minimum voting power required to vote
 };
 const _proposal = await client.createProposal(proposal);
+
+// Get existing proposal by Id
 const __proposal = await client.getProposal(_proposal.id);
 
-// Get minimum voting power required to make a proposal
-const minVotingPowerRequiredToCreateProposal =
-  await client.getMinVotingPowerRequiredToCreateProposal(_proposal.id);
+// Delete owned proposal
+await client.deleteProposal(_proposal.id);
+
+// Add choice
+const choice = {
+  description: "Choice 3 description",
+};
+const _proposal = await client.addProposalChoice(_proposal.id, choice);
+
+// Remove choice
+const _proposal = await client.removeProposalChoice(_proposal.id, choice.id);
 
 // Vote for a proposal
 await client.voteForProposal(_proposal.id, [
   {
-    optionId: _proposal.options[0].id,
+    id: _proposal.choices[0].id,
+  },
+  {
+    id: _proposal.choices[1].id,
   },
 ]);
 
@@ -576,3 +578,7 @@ const minBalanceRequiredToCreateMNS =
 ## Useful tools
 
 - https://gitcdn.link/
+
+## References
+
+- https://docs.snapshot.org/proposals/voting-types
