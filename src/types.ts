@@ -4,14 +4,14 @@ export type MyobuDBPropValue =
   | boolean
   | null
   | {
-      $sum: MyobuDBPropValue[];
+      $add: MyobuDBPropValue[];
     }
   | {
       $mul: MyobuDBPropValue[];
     }
-  /** Property, eg "mns.name" */
+  /** Property key, eg "mns.name" */
   | {
-      $prop: string;
+      $key: string;
     }
   | {
       $timestamp: boolean;
@@ -22,6 +22,13 @@ export type MyobuDBPropValue =
   | {
       $coalesce: MyobuDBPropValue[];
     }
+  /*
+  | {
+      $sum: {
+        $prop: string;
+      };
+    }
+    */
   | MyobuDBPropValue[];
 
 export interface MyobuRecord {
@@ -119,9 +126,12 @@ export type MyobuDBReturnValue =
   | {
       key: string;
       count?: boolean;
+      sum?: boolean;
       as?: string;
       distinct?: boolean;
     };
+
+export type MyobuDBWithValue = MyobuDBReturnValue;
 
 export type MyobuDBWhereClause = /*
   | {
@@ -149,12 +159,13 @@ export type MyobuDBRequest = {
    * For MERGE on relationships, we don't accept node props.
    */
   merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
+  where?: MyobuDBWhereClause;
+  with?: MyobuDBWithValue[];
   delete?: string[];
   detachDelete?: string[];
   set?: {
     [key: string]: MyobuDBPropValue;
   };
-  where?: MyobuDBWhereClause;
   skip?: number;
   limit?: number;
   orderBy?: {
@@ -279,11 +290,13 @@ export interface MNSProfile {
 export interface MyobuDBLabelTrigger {
   label: string;
   name: string;
-  args: string[];
+  params: string[];
   description?: string;
   db: {
-    match: (MyobuDBNode | MyobuDBRelationship)[];
-    set: {
+    match?: (MyobuDBNode | MyobuDBRelationship)[];
+    create?: (MyobuDBNode | MyobuDBRelationship)[];
+    merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
+    set?: {
       [key: string]: MyobuDBPropValue;
     };
   };

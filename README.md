@@ -256,12 +256,12 @@ await client.db({
   set: {
     "people.name": "newkirito",
     "people.age": {
-      $sum: ["$people.age", 1],
+      $add: ["$people.age", 1],
     },
     "people.followers": {
       $coalesce: [
         {
-          $sum: ["$people.followers", 1],
+          $add: ["$people.followers", 1],
         },
         1, // If followers is null, set it to 1
       ],
@@ -426,7 +426,7 @@ And the label owner can only run the `set` db operation to update the properties
 await client.createLabelTrigger({
   label: "MNS",
   name: "follows",
-  args: ["followee"],
+  params: ["followeeId"],
   description: "",
   // The db operation below will be executed on behalf of the owner of the `MNS` label
   db: {
@@ -448,7 +448,7 @@ await client.createLabelTrigger({
           key: "followee_",
           labels: ["MNS"],
           props: {
-            _owner: {$prop: "followee._owner"},
+            _owner: {$arg: "followeeId"},
           },
         },
       },
@@ -457,7 +457,7 @@ await client.createLabelTrigger({
       "follower._followings": {
         $coalesce: [
           {
-            $sum: [{$prop: "follower._followings"}, 1],
+            $add: [{$prop: "follower._followings"}, 1],
           },
           1, //
         ],
@@ -465,7 +465,7 @@ await client.createLabelTrigger({
       "followee_._followers": {
         $coalesce: [
           {
-            $sum: [{$prop: "followee_._followers"}, 1],
+            $add: [{$prop: "followee_._followers"}, 1],
           },
           1,
         ],
@@ -508,7 +508,9 @@ await client.db({
     {
       label: "MNS",
       name: "follows",
-      args: ["friend"],
+      args: {
+        followeeId: { $prop: "friend.id" },
+      },
     },
   ],
 });
