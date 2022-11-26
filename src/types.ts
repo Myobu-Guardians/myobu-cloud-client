@@ -7,7 +7,13 @@ export type MyobuDBPropValue =
       $add: MyobuDBPropValue[];
     }
   | {
+      $sub: MyobuDBPropValue[];
+    }
+  | {
       $mul: MyobuDBPropValue[];
+    }
+  | {
+      $div: MyobuDBPropValue[];
     }
   /** Property key, eg "mns.name" */
   | {

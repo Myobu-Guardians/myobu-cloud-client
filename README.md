@@ -418,14 +418,13 @@ await client.deleteLabelACL(labelName);
 
 `To be implemented`
 
-You can set triggers for a specific Label.  
+You can set triggers for the database.  
 Please note that only the label owner can set triggers for the label.  
 And the label owner can only run the `set` db operation to update the properties with the name that starts with `_` in the trigger for the node of the label owned.
 
 ```typescript
-await client.createLabelTrigger({
-  label: "MNS",
-  name: "follows",
+await client.createTrigger({
+  name: "MNSFollows",
   params: ["followeeId"],
   description: "",
   // The db operation below will be executed on behalf of the owner of the `MNS` label
