@@ -3,6 +3,25 @@ export type MyobuDBPropValue =
   | number
   | boolean
   | null
+  | {
+      $sum: MyobuDBPropValue[];
+    }
+  | {
+      $mul: MyobuDBPropValue[];
+    }
+  /** Property, eg "mns.name" */
+  | {
+      $prop: string;
+    }
+  | {
+      $timestamp: boolean;
+    }
+  | {
+      $signer: boolean;
+    }
+  | {
+      $coalesce: MyobuDBPropValue[];
+    }
   | MyobuDBPropValue[];
 
 export interface MyobuRecord {
@@ -115,10 +134,10 @@ export type MyobuDBWhereClause = /*
 
 export interface MergeOnMatchOnCreate {
   onMatch?: {
-    [key: string]: any;
+    [key: string]: MyobuDBPropValue;
   };
   onCreate?: {
-    [key: string]: any;
+    [key: string]: MyobuDBPropValue;
   };
 }
 
@@ -133,7 +152,7 @@ export type MyobuDBRequest = {
   delete?: string[];
   detachDelete?: string[];
   set?: {
-    [key: string]: any;
+    [key: string]: MyobuDBPropValue;
   };
   where?: MyobuDBWhereClause;
   skip?: number;
@@ -255,4 +274,25 @@ export interface MNSProfile {
   // Wallet addresses
   eth?: string;
   btc?: string;
+}
+
+export interface MyobuDBLabelTrigger {
+  label: string;
+  name: string;
+  args: string[];
+  description?: string;
+  db: {
+    match: (MyobuDBNode | MyobuDBRelationship)[];
+    set: {
+      [key: string]: MyobuDBPropValue;
+    };
+  };
+}
+
+export interface MyobuDBLabelTriggerRequest {
+  trigger: MyobuDBLabelTrigger;
+  // JWT
+  jwt?: MyobuDBJWT;
+  // Delete
+  delete?: boolean;
 }

@@ -40,7 +40,7 @@ We provide a protocol service for Myobu, which offers:
     - [Snapshot](#snapshot)
     - [Label schema](#label-schema)
     - [Label ACL](#label-acl)
-    - [Label triggers](#label-triggers)
+    - [Triggers](#triggers)
   - [PubSub](#pubsub)
   - [Image upload](#image-upload)
   - [DAO](#dao)
@@ -92,8 +92,6 @@ const profileNode = await client.db({
       props: {
         name: "kirito",
         email: "kirito.m@myobu.io",
-        created: "$now", // $now is a special keyword that will be replaced with current timestamp
-        modified: "$now",
         age: 18,
       },
     },
@@ -120,9 +118,13 @@ console.log(profileNode);
 */
 ```
 
-> In the future, the number of Myobu you hold (or staked) will decide how many nodes you can create.  
-> Node labels are strictly required to be camel-case, beginning with an upper-case character. VehicleOwner rather than vehicle_owner etc.
+> In the future, the number of Myobu you hold (or staked) will decide how many nodes you can create.
+>
+> Node labels are strictly required to be camel-case, beginning with an upper-case character. VehicleOwner rather than vehicleOwner etc.
+>
 > We only support `string`, `number`, `boolean`, and `null` types in `props` for now.
+>
+> Property names that start with `_` are reserved for system use. Users are not allowed to modify them. For example, `_owner`, `_createdAt`, `_updatedAt`.
 
 #### Relationships
 
@@ -175,11 +177,11 @@ const profileNode = await client.db({
         name: "kirito",
       },
       onMatch: {
-        "profile.fetched": "$now",
+        "profile.fetched": { "$timestamp": true },
       },
       onCreate: {
-        "profile.created": "$now",
-        "profile.fetched": "$now",
+        "profile.created": { "$timestamp": true },
+        "profile.fetched": { "$timestamp": true },
       },
     }
   ],
@@ -253,8 +255,16 @@ await client.db({
   limit: 5,
   set: {
     "people.name": "newkirito",
-    $inc: {
-      "people.age": 1,
+    "people.age": {
+      $sum: ["$people.age", 1],
+    },
+    "people.followers": {
+      $coalesce: [
+        {
+          $sum: ["$people.followers", 1],
+        },
+        1, // If followers is null, set it to 1
+      ],
     },
   },
   return: ["people"],
@@ -408,24 +418,99 @@ await client.deleteLabelACL(labelName);
 
 `To be implemented`
 
-You can set triggers for a specific Label
+You can set triggers for a specific Label.  
+Please note that only the label owner can set triggers for the label.  
+And the label owner can only run the `set` db operation to update the properties with the name that starts with `_` in the trigger for the node of the label owned.
 
 ```typescript
-await client.setLabelTrigger({
-  label: "Profile",
-  triggers: [
-    {
-      type: "FOLLOWS", // When someone follows this node
-      from: {
-        label: "MNS",
-      }
-      set: {
-        $inc: {
-          "followers": 1,
+await client.createLabelTrigger({
+  label: "MNS",
+  name: "follows",
+  args: ["followee"],
+  description: "",
+  // The db operation below will be executed on behalf of the owner of the `MNS` label
+  db: {
+    match: [
+      {
+        key: "r",
+        type: "FOLLOWS",
+        props: {
+          _owner: {"$signer": true}, // $signer here means the address who calls the trigger
+        },
+        from:       {
+          key: "follower",
+          labels: ["MNS"],
+          props: {
+            _owner: {"$signer": true}, // $signer here means the address who calls the trigger
+          },
+        },
+        to: {
+          key: "followee_",
+          labels: ["MNS"],
+          props: {
+            _owner: {$prop: "followee._owner"},
+          },
         },
       },
+    ]
+    set: { // can only set the properties with name that starts with `_` and nodes of label `MNS`
+      "follower._followings": {
+        $coalesce: [
+          {
+            $sum: [{$prop: "follower._followings"}, 1],
+          },
+          1, //
+        ],
+      },
+      "followee_._followers": {
+        $coalesce: [
+          {
+            $sum: [{$prop: "followee_._followers"}, 1],
+          },
+          1,
+        ],
+      },
     },
-  ]
+  },
+});
+```
+
+Then we can apply the trigger like below:
+
+```typescript
+await client.db({
+  match: [
+    {
+      key: "me",
+      labels: ["MNS"],
+      props: {
+        _owner: "0x1234567890",
+      },
+    },
+    {
+      key: "friend",
+      labels: ["MNS"],
+      props: {
+        _owner: "0x0987654321",
+      },
+    },
+  ],
+  create: [
+    {
+      key: "r",
+      type: "FOLLOWS",
+      from: { key: "me" },
+      to: { key: "friend" },
+    },
+  ],
+  // Apply the trigger
+  trigger: [
+    {
+      label: "MNS",
+      name: "follows",
+      args: ["friend"],
+    },
+  ],
 });
 ```
 
@@ -455,7 +540,7 @@ const { urls } = await client.uploadImages(files);
 
 ### Balance
 
-Get the user balance. This includes the amount of MYOBU tokens that the user holds and the amount of MYOBU tokens that the user has staked.
+Get the user balance. This includes the amount of MYOBU tokens (on both ETH and BNB) that the user holds and the amount of MYOBU tokens that the user has staked.
 
 ```typescript
 const walletAddress = "0x1234567890";
@@ -464,7 +549,7 @@ const balance = await client.getBalance(walletAddress);
 
 ### Voting power
 
-Get the user's voting power. The voting power is the weighted balance of the user's staked MYOBU token.
+Get the user's voting power. The voting power is the weighted balance of the user's staked MYOBU token (on both ETH and BNB).
 
 ```typescript
 const walletAddress = "0x1234567890";
@@ -506,6 +591,12 @@ const __proposal = await client.getProposal(_proposal.id);
 
 // Delete owned proposal
 await client.deleteProposal(_proposal.id);
+
+// Update title and description
+const _proposal = await client.updateProposal(_proposal.id, {
+  title: "New title",
+  description: "New description",
+});
 
 // Add choice
 const choice = {
@@ -573,6 +664,12 @@ const profile = await client.getMNS("0x1234567890");
 // Get minimum balance required to create an MNS
 const minBalanceRequiredToCreateMNS =
   await client.getMinBalanceRequiredToCreateMNS();
+
+// Follow
+await client.followMNS("kirito");
+
+// Unfollow
+await client.unfollowMNS("kirito");
 ```
 
 ## Useful tools
