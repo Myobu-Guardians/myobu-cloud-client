@@ -28,6 +28,12 @@ export type MyobuDBPropValue =
   | {
       $coalesce: MyobuDBPropValue[];
     }
+  | {
+      $arg: string;
+    }
+  | {
+      $votingPower: MyobuDBPropValue;
+    }
   /*
   | {
       $sum: {
@@ -157,7 +163,7 @@ export interface MergeOnMatchOnCreate {
   };
 }
 
-export type MyobuDBRequest = {
+export interface MyobuDBOperation {
   // CRUD
   match?: (MyobuDBNode | MyobuDBRelationship)[];
   create?: (MyobuDBNode | MyobuDBRelationship)[];
@@ -178,7 +184,9 @@ export type MyobuDBRequest = {
     [key: string]: MyobuDBOrder;
   };
   return?: MyobuDBReturnValue[];
+}
 
+export interface MyobuDBRequest extends MyobuDBOperation {
   // Constraints
   /**
    * List constraints of label.
@@ -198,7 +206,7 @@ export type MyobuDBRequest = {
 
   // JWT
   jwt?: MyobuDBJWT;
-};
+}
 
 export interface MyobuDBLabelSchema {
   label: string;
@@ -293,23 +301,20 @@ export interface MNSProfile {
   btc?: string;
 }
 
-export interface MyobuDBLabelTrigger {
+export interface MyobuDBEvent {
   label: string;
   name: string;
   params: string[];
   description?: string;
-  db: {
-    match?: (MyobuDBNode | MyobuDBRelationship)[];
-    create?: (MyobuDBNode | MyobuDBRelationship)[];
-    merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
-    set?: {
-      [key: string]: MyobuDBPropValue;
-    };
-  };
+  db: MyobuDBOperation;
 }
 
-export interface MyobuDBLabelTriggerRequest {
-  trigger: MyobuDBLabelTrigger;
+export interface MyobuDBEventWithExtra extends MyobuDBEvent {
+  owner: string;
+}
+
+export interface MyobuDBEventRequest {
+  event: MyobuDBEvent;
   // JWT
   jwt?: MyobuDBJWT;
   // Delete

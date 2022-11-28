@@ -40,7 +40,7 @@ We provide a protocol service for Myobu, which offers:
     - [Snapshot](#snapshot)
     - [Label schema](#label-schema)
     - [Label ACL](#label-acl)
-    - [Triggers](#triggers)
+    - [Event](#event)
   - [PubSub](#pubsub)
   - [Image upload](#image-upload)
   - [DAO](#dao)
@@ -414,57 +414,63 @@ await client.getLabelACL(labelName);
 await client.deleteLabelACL(labelName);
 ```
 
-### Triggers
+### Event
 
 `To be implemented`
 
-You can set triggers for the database.  
-Please note that only the label owner can set triggers for the label.  
-And the label owner can only run the `set` db operation to update the properties with the name that starts with `_` in the trigger for the node of the label owned.
+You can set event for the database.  
+Please note that only the label owner can set event for the label.  
+~~And the label owner can only run the `set` db operation to update the properties with the name that starts with `_` in the trigger for the node of the label owned.~~
 
 ```typescript
-await client.createTrigger({
-  name: "MNSFollows",
+await client.createDBEvent({
+  name: "follows",
+  label: "MNS",
+  description: "User follows another user",
   params: ["followeeId"],
-  description: "",
-  // The db operation below will be executed on behalf of the owner of the `MNS` label
   db: {
     match: [
       {
-        key: "r",
-        type: "FOLLOWS",
+        key: "user",
+        labels: ["MNS"],
         props: {
-          _owner: {"$signer": true}, // $signer here means the address who calls the trigger
-        },
-        from:       {
-          key: "follower",
-          labels: ["MNS"],
-          props: {
-            _owner: {"$signer": true}, // $signer here means the address who calls the trigger
-          },
-        },
-        to: {
-          key: "followee_",
-          labels: ["MNS"],
-          props: {
-            _owner: {$arg: "followeeId"},
-          },
+          _owner: { $signer: true }, // $signer here means the address who calls the event
         },
       },
-    ]
-    set: { // can only set the properties with name that starts with `_` and nodes of label `MNS`
-      "follower._followings": {
+      {
+        key: "followee",
+        labels: ["MNS"],
+        props: {
+          _owner: { $arg: "followeeId" }, // We use $arg to get the argument passed to the event
+        },
+      },
+    ],
+    merge: [
+      {
+        key: "r",
+        type: "FOLLOWS",
+        from: {
+          key: "user",
+        },
+        to: {
+          key: "followee",
+        },
+      },
+    ],
+    set: {
+      // The `owner` can set properties with the name that starts with `_`, unlike the normal user.
+      "user._followings": {
         $coalesce: [
           {
-            $add: [{$prop: "follower._followings"}, 1],
+            $add: [{ $key: "user._followings" }, 1],
           },
           1, //
         ],
       },
-      "followee_._followers": {
+      "followee._followers": {
         $coalesce: [
           {
-            $add: [{$prop: "followee_._followers"}, 1],
+            $add: [{ $key: "followee._followers" }, 1],
           },
           1,
         ],
@@ -474,44 +480,15 @@ await client.createTrigger({
 });
 ```
 
-Then we can apply the trigger like below:
+Then we can apply the db event like below:
 
 ```typescript
-await client.db({
-  match: [
-    {
-      key: "me",
-      labels: ["MNS"],
-      props: {
-        _owner: "0x1234567890",
-      },
-    },
-    {
-      key: "friend",
-      labels: ["MNS"],
-      props: {
-        _owner: "0x0987654321",
-      },
-    },
-  ],
-  create: [
-    {
-      key: "r",
-      type: "FOLLOWS",
-      from: { key: "me" },
-      to: { key: "friend" },
-    },
-  ],
-  // Apply the trigger
-  trigger: [
-    {
-      label: "MNS",
-      name: "follows",
-      args: {
-        followeeId: { $prop: "friend.id" },
-      },
-    },
-  ],
+await client.applyDBEvent({
+  label: "MNS",
+  name: "follows",
+  args: {
+    followerId: "0x1234567890",
+  },
 });
 ```
 
