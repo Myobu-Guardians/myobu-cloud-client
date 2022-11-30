@@ -101,6 +101,10 @@ const follows: MyobuDBEvent = {
         to: {
           key: "followee",
         },
+        props: {
+          _owner: { $signer: true },
+          _createdAt: { $timestamp: true },
+        },
       },
     ],
     set: {

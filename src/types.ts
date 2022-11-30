@@ -42,7 +42,7 @@ export type MyobuDBPropValue =
     }
   | MyobuDBPropValueObject
   | {
-      $get: [{ $arg: string }, string | number];
+      $get: [{ $arg: string }, string];
     }
 
   /*
@@ -173,6 +173,30 @@ export interface MergeOnMatchOnCreate {
     [key: string]: MyobuDBPropValue;
   };
 }
+
+export interface MyobuDBReadOperation {
+  match?: (MyobuDBNode | MyobuDBRelationship)[];
+  where?: MyobuDBWhereClause;
+  with?: MyobuDBWithValue[];
+  skip?: number;
+  limit?: number;
+  orderBy?: {
+    [key: string]: MyobuDBOrder;
+  };
+  return?: MyobuDBReturnValue;
+}
+
+/*
+export interface MyobuDBWriteOperation {
+  create?: (MyobuDBNode | MyobuDBRelationship)[];
+  merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
+  delete?: string[];
+  detachDelete?: string[];
+  set?: {
+    [key: string]: MyobuDBPropValue;
+  };
+}
+*/
 
 export interface MyobuDBOperation {
   // CRUD
