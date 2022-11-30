@@ -1,3 +1,9 @@
+export type MyobuDBPropValueObject = {
+  $object: {
+    [key: string]: MyobuDBPropValue;
+  };
+};
+
 export type MyobuDBPropValue =
   | string
   | number
@@ -34,6 +40,11 @@ export type MyobuDBPropValue =
   | {
       $votingPower: MyobuDBPropValue;
     }
+  | MyobuDBPropValueObject
+  | {
+      $get: [{ $arg: string }, string | number];
+    }
+
   /*
   | {
       $sum: {
@@ -301,10 +312,20 @@ export interface MNSProfile {
   btc?: string;
 }
 
+export type MyobuDBEventParameter =
+  | {
+      name: string;
+      type: "string" | "number" | "boolean" | "enum" | "array" | "object";
+      enum?: string[];
+      description?: string;
+      required?: boolean;
+      default?: MyobuDBPropValue;
+    }
+  | string;
+
 export interface MyobuDBEvent {
-  label: string;
   name: string;
-  params: string[];
+  params: MyobuDBEventParameter[];
   description?: string;
   db: MyobuDBOperation;
 }
