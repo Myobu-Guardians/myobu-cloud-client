@@ -1,13 +1,20 @@
 import { ethers } from "ethers";
 import {
   MNSProfile,
+  MyobuDBApplyEventRequest,
+  MyobuDBEvent,
+  MyobuDBEventRequest,
   MyobuDBJWT,
   MyobuDBJWTPayload,
   MyobuDBJWTSignature,
   MyobuDBLabelACL,
   MyobuDBLabelACLRequest,
+  MyobuDBLabelConstraints,
+  MyobuDBLabelConstraintsCreateRequest,
+  MyobuDBLabelConstraintsDeleteRequest,
   MyobuDBLabelSchema,
   MyobuDBLabelSchemaRequest,
+  MyobuDBPropValue,
   MyobuDBRequest,
   MyobuRecord,
 } from "./types";
@@ -124,24 +131,11 @@ JWT:`;
     return jwt;
   }
 
-  async db(request: MyobuDBRequest): Promise<
+  async queryDB(request: MyobuDBRequest): Promise<
     {
       [key: string]: MyobuRecord;
     }[]
   > {
-    if (
-      request.create ||
-      request.merge ||
-      request.set ||
-      request.delete ||
-      request.detachDelete ||
-      request.createConstraints ||
-      request.dropConstraints
-    ) {
-      request.jwt = await this.generateJWT();
-    }
-
-    //
     const res = await fetch(`${this.server}/db`, {
       method: "POST",
       headers: {
@@ -154,6 +148,98 @@ JWT:`;
     } else {
       throw new Error(await res.text());
     }
+  }
+
+  async applyDBEvent(
+    label: string,
+    eventName: string,
+    eventArgs: { [key: string]: MyobuDBPropValue }
+  ) {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBApplyEventRequest = {
+      jwt,
+      label,
+      eventName,
+      eventArgs,
+    };
+    const res = await fetch(`${this.server}/db/apply-event`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async createDBEvent(event: MyobuDBEvent): Promise<{ success: boolean }> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBEventRequest = {
+      jwt,
+      event,
+    };
+    const res = await fetch(`${this.server}/db-events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async deleteDBEvent(
+    label: string,
+    eventName: string
+  ): Promise<{ success: boolean }> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBEventRequest = {
+      jwt,
+      event: {
+        label,
+        name: eventName,
+        db: {},
+        params: [],
+      },
+      delete: true,
+    };
+    const res = await fetch(`${this.server}/db-events`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async getDBEvents(label: string): Promise<MyobuDBEvent[]> {
+    const res = await fetch(`${this.server}/db-events/${label}`);
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
   }
 
   async uploadImages(files: File[]): Promise<{ urls: (string | null)[] }> {
@@ -281,6 +367,64 @@ JWT:`;
     throw new Error(await res.text());
   }
 
+  async createLabelConstraints(constraints: MyobuDBLabelConstraints) {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBLabelConstraintsCreateRequest = {
+      jwt,
+      constraints,
+    };
+    const res = await fetch(`${this.server}/label-constraints`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async deleteLabelConstraints(
+    constraintNames: string[]
+  ): Promise<{ constraint: NamedCurve; success: boolean; error?: string }[]> {
+    if (!this.signer) {
+      throw new Error("No signer set. Please connect wallet first.");
+    }
+
+    const jwt = await this.generateJWT();
+    const request: MyobuDBLabelConstraintsDeleteRequest = {
+      jwt,
+      constraintNames,
+    };
+    const res = await fetch(`${this.server}/label-constraints`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(request),
+    });
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
+  async listLabelConstraints(
+    label: string
+  ): Promise<MyobuDBLabelConstraints[]> {
+    const res = await fetch(`${this.server}/label-constraints/${label}`);
+    if (res.status === 200) {
+      return await res.json();
+    }
+    throw new Error(await res.text());
+  }
+
   async setLabelACL(acl: MyobuDBLabelACL) {
     if (!this.signer) {
       throw new Error("No signer set. Please connect wallet first.");
@@ -361,23 +505,8 @@ JWT:`;
     if (!isMNSNameValid(profile.name)) {
       throw new Error(`Name ${profile.name} is not valid`);
     }
-    if (!this.signer) {
-      throw new Error("No signer set. Please connect wallet first.");
-    }
-
-    const result = await this.db({
-      merge: [
-        {
-          key: "mns",
-          labels: ["MNS"],
-          props: {
-            _owner: await this.signer.getAddress(),
-          },
-          onCreate: appendPrefixToObjectKeys(profile, "mns."),
-          onMatch: appendPrefixToObjectKeys(profile, "mns."),
-        },
-      ],
-      return: ["mns"],
+    const result = await this.applyDBEvent("MNS", "upsert", {
+      profile: { $object: profile as any },
     });
     if (result.length === 0) {
       throw new Error("Failed to upsert MNS");
@@ -390,7 +519,7 @@ JWT:`;
     if (addressOrName.endsWith(".m")) {
       addressOrName = addressOrName.slice(0, -2);
     }
-    const result = await this.db({
+    const result = await this.queryDB({
       match: [
         {
           key: "mns",

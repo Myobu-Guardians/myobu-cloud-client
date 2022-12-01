@@ -84,15 +84,13 @@ A node has `labels` to identify its type and `props` (properties) that describe 
 You can create a node in Myobu Protocol like the below:
 
 ```typescript
-const profileNode = await client.db({
-  create: [
+const profileNode = await client.queryDB({
+  match: [
     {
       key: "profile",
       labels: ["MNS"],
       props: {
         name: "kirito",
-        email: "kirito.m@myobu.io",
-        age: 18,
       },
     },
   ],
@@ -132,7 +130,7 @@ A relationship is a directed connection between two nodes.
 A relationship has a `type` and `props` (properties) to describe the relationship.
 
 ```typescript
-const relationship = await client.db({
+{
   match: [
     {
       ...profileNode,
@@ -157,7 +155,7 @@ const relationship = await client.db({
     },
   ],
   return: ["profile", "city", "r"],
-});
+};
 ```
 
 > In the future, the number of Myobu you hold (or staked) will decide how many relationships you can create.  
@@ -168,7 +166,7 @@ const relationship = await client.db({
 #### Upsert (Create or Update) using `merge`
 
 ```typescript
-const profileNode = await client.db({
+{
   merge: [
     {
       key: "profile",
@@ -185,15 +183,15 @@ const profileNode = await client.db({
       },
     }
   ],
-  return ["profile"]
-})
+  return: ["profile"]
+}
 ```
 
 #### Query
 
 ```typescript
 // Find people who lives in Mars and has age greater than 18 and less than 90
-const result = await client.db({
+const result = await client.queryDB({
   match: [
     {
       key: "r",
@@ -241,7 +239,7 @@ const result = await client.db({
 #### Update
 
 ```typescript
-await client.db({
+{
   match: [
     {
       key: "people",
@@ -268,13 +266,13 @@ await client.db({
     },
   },
   return: ["people"],
-});
+};
 ```
 
 #### Delete
 
 ```typescript
-await client.db({
+{
   match: [
     {
       key: "r",
@@ -303,36 +301,30 @@ await client.db({
   delete: ["people", "r", "city"],
   detachDelete: ["city"], // When you want to delete a node and any relationship going to or from it, use DETACH DELETE.
   return: ["people"],
-});
+};
 ```
 
 ### Constraints for Label
 
-#### List contraints
+#### List constraints
 
 ```typescript
-await client.db({
-  listConstraints: "MNS",
-});
+await client.listLabelConstraints("MNS");
 ```
 
 #### Create constraints
 
 ```typescript
-await client.db({
-  createConstraints: {
-    label: "MNS",
-    unique: [["_owner"], ["name"]],
-  },
+await client.createLabelConstraints({
+  label: "MNS",
+  unique: [["_owner"], ["name"]],
 });
 ```
 
 #### Delete constraints
 
 ```typescript
-await client.db({
-  dropConstraints: ["constraint_name_1", "constraint_name_2"],
-});
+await client.deleteLabelConstraints(["constraint_name_1", "constraint_name_2"]);
 ```
 
 ### Ownership

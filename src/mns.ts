@@ -32,14 +32,7 @@ const upsert = (() => {
     label: "MNS",
     name: "upsert",
     description: "Upsert MNS profile",
-    params: [
-      {
-        name: "profile",
-        type: "object",
-        description: "MNS Profile",
-        required: true,
-      },
-    ],
+    params: ["profile"],
     db: {
       merge: [
         {
@@ -47,17 +40,18 @@ const upsert = (() => {
           labels: ["MNS"],
           props: { _owner: { $signer: true } },
           onCreate: {
-            _owner: { $signer: true },
-            _createdAt: { $timestamp: true },
-            _updatedAt: { $timestamp: true },
+            "user._owner": { $signer: true },
+            "user._createdAt": { $timestamp: true },
+            "user._updatedAt": { $timestamp: true },
             ...setProfile,
           },
           onMatch: {
-            _updatedAt: { $timestamp: true },
+            "user._updatedAt": { $timestamp: true },
             ...setProfile,
           },
         },
       ],
+      return: ["user"],
     },
   };
 
@@ -68,14 +62,7 @@ const follows: MyobuDBEvent = {
   label: "MNS",
   name: "follows",
   description: "User follows another user",
-  params: [
-    {
-      name: "followeeId",
-      type: "string",
-      description: "The ID of the user being followed",
-      required: true,
-    },
-  ],
+  params: ["followeeId"],
   db: {
     match: [
       {

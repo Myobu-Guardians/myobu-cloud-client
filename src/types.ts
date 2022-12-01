@@ -9,6 +9,7 @@ export type MyobuDBPropValue =
   | number
   | boolean
   | null
+  | undefined
   | {
       $add: MyobuDBPropValue[];
     }
@@ -177,18 +178,6 @@ export interface MergeOnMatchOnCreate {
   };
 }
 
-export interface MyobuDBReadOperation {
-  match?: (MyobuDBNode | MyobuDBRelationship)[];
-  where?: MyobuDBWhereClause;
-  with?: MyobuDBWithValue[];
-  skip?: number;
-  limit?: number;
-  orderBy?: {
-    [key: string]: MyobuDBOrder;
-  };
-  return?: MyobuDBReturnValue;
-}
-
 /*
 export interface MyobuDBWriteOperation {
   create?: (MyobuDBNode | MyobuDBRelationship)[];
@@ -224,10 +213,23 @@ export interface MyobuDBOperation {
   return?: MyobuDBReturnValue[];
 }
 
-export interface MyobuDBRequest extends MyobuDBOperation {
-  // JWT
-  jwt?: MyobuDBJWT;
+export interface MyobuDBReadOperation {
+  // CRUD
+  match?: (MyobuDBNode | MyobuDBRelationship)[];
+  /**
+   * For MERGE on relationships, we don't accept node props.
+   */
+  where?: MyobuDBWhereClause;
+  with?: MyobuDBWithValue[];
+  skip?: number;
+  limit?: number;
+  orderBy?: {
+    [key: string]: MyobuDBOrder;
+  };
+  return?: MyobuDBReturnValue[];
 }
+
+export interface MyobuDBRequest extends MyobuDBReadOperation {}
 
 export interface MyobuDBLabelSchema {
   label: string;
@@ -350,7 +352,7 @@ export interface MNSProfile {
   btc?: string;
 }
 
-export type MyobuDBEventParameter =
+export type MyobuDBEventParameter = /*
   | {
       name: string;
       type: "string" | "number" | "boolean" | "enum" | "array" | "object";
@@ -359,7 +361,7 @@ export type MyobuDBEventParameter =
       required?: boolean;
       default?: MyobuDBPropValue;
     }
-  | string;
+  |*/ string;
 
 export interface MyobuDBEvent {
   label: string;
@@ -375,4 +377,11 @@ export interface MyobuDBEventRequest {
   jwt?: MyobuDBJWT;
   // Delete
   delete?: boolean;
+}
+
+export interface MyobuDBApplyEventRequest {
+  label: string;
+  eventName: string;
+  eventArgs: { [key: string]: MyobuDBPropValue };
+  jwt: MyobuDBJWT;
 }
