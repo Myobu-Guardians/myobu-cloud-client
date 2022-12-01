@@ -44,6 +44,9 @@ export type MyobuDBPropValue =
   | {
       $get: [{ $arg: string }, string];
     }
+  | {
+      $id: "uuid" | "nanoid";
+    }
 
   /*
   | {
@@ -222,23 +225,6 @@ export interface MyobuDBOperation {
 }
 
 export interface MyobuDBRequest extends MyobuDBOperation {
-  // Constraints
-  /**
-   * List constraints of label.
-   */
-  listConstraints?: string;
-  /**
-   * Drop constraints by constraint names
-   */
-  dropConstraints?: string[];
-  /**
-   * Create constraints
-   */
-  createConstraints?: {
-    label: string;
-    unique: string[][];
-  };
-
   // JWT
   jwt?: MyobuDBJWT;
 }
@@ -309,6 +295,34 @@ export function isMyobuDBLabelACL(obj: any): obj is MyobuDBLabelACL {
   );
 }
 
+export interface MyobuDBLabelConstraints {
+  label: string;
+  unique: string[][];
+}
+
+export interface MyobuDBLabelConstraintsCreateRequest {
+  constraints: MyobuDBLabelConstraints;
+  // JWT
+  jwt?: MyobuDBJWT;
+}
+
+export interface MyobuDBLabelConstraintsDeleteRequest {
+  constraintNames: string[];
+  // JWT
+  jwt?: MyobuDBJWT;
+}
+
+export function isMyobuDBLabelConstraints(
+  obj: any
+): obj is MyobuDBLabelConstraints {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof obj.label === "string" &&
+    Array.isArray(obj.unique)
+  );
+}
+
 export interface MNSProfile {
   name: string;
   displayName: string;
@@ -348,14 +362,11 @@ export type MyobuDBEventParameter =
   | string;
 
 export interface MyobuDBEvent {
+  label: string;
   name: string;
   params: MyobuDBEventParameter[];
   description?: string;
   db: MyobuDBOperation;
-}
-
-export interface MyobuDBEventWithExtra extends MyobuDBEvent {
-  owner: string;
 }
 
 export interface MyobuDBEventRequest {

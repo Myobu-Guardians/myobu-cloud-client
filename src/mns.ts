@@ -29,7 +29,8 @@ const upsert = (() => {
   };
 
   const evt: MyobuDBEvent = {
-    name: "MNS.upsert",
+    label: "MNS",
+    name: "upsert",
     description: "Upsert MNS profile",
     params: [
       {
@@ -64,7 +65,8 @@ const upsert = (() => {
 })();
 
 const follows: MyobuDBEvent = {
-  name: "MNS.follows",
+  label: "MNS",
+  name: "follows",
   description: "User follows another user",
   params: [
     {
@@ -130,7 +132,8 @@ const follows: MyobuDBEvent = {
 };
 
 const unfollows: MyobuDBEvent = {
-  name: "MNS.unfollows",
+  label: "MNS",
+  name: "unfollows",
   description: "User unfollows another user",
   params: ["followeeId"],
   db: {
