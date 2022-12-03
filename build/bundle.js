@@ -114,6 +114,11 @@
             typeof obj.label === "string" &&
             Array.isArray(obj.unique));
     }
+    exports.MyobuDBProposalVoteType = void 0;
+    (function (MyobuDBProposalVoteType) {
+        MyobuDBProposalVoteType["SINGLE_CHOICE"] = "SINGLE_CHOICE";
+        MyobuDBProposalVoteType["MULTIPLE_CHOICE"] = "MULTIPLE_CHOICE";
+    })(exports.MyobuDBProposalVoteType || (exports.MyobuDBProposalVoteType = {}));
 
     function appendPrefixToObjectKeys(obj, prefix) {
         var newObj = {};
@@ -841,6 +846,9 @@
                                 title: proposal.title,
                                 description: proposal.description,
                                 voteType: proposal.voteType,
+                                minVotingPower: proposal.minVotingPower,
+                                startDate: proposal.startDate,
+                                endDate: proposal.endDate,
                             })];
                         case 1:
                             result = _a.sent();
@@ -886,23 +894,27 @@
                 });
             });
         };
-        MyobuProtocolClient.prototype.updateProposal = function (proposalId, title, description) {
+        MyobuProtocolClient.prototype.updateProposal = function (proposalId, _a) {
+            var title = _a.title, description = _a.description, minVotingPower = _a.minVotingPower, startDate = _a.startDate, endDate = _a.endDate;
             return __awaiter(this, void 0, void 0, function () {
                 var result;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
                         case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "updateProposal", {
                                 proposalId: proposalId,
                                 title: title,
                                 description: description,
+                                minVotingPower: minVotingPower,
+                                startDate: startDate,
+                                endDate: endDate,
                             })];
                         case 1:
-                            result = _a.sent();
+                            result = _b.sent();
                             if (result.length === 0) {
                                 throw new Error("Failed to update proposal");
                             }
                             return [4 /*yield*/, this.getProposal(proposalId)];
-                        case 2: return [2 /*return*/, _a.sent()];
+                        case 2: return [2 /*return*/, _b.sent()];
                     }
                 });
             });

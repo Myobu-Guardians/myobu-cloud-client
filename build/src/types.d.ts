@@ -114,6 +114,10 @@ export declare type MyobuDBReturnValue = string | {
 };
 export declare type MyobuDBWithValue = MyobuDBReturnValue;
 export declare type MyobuDBWhereClause = {
+    $and: MyobuDBWhereClause[];
+} | {
+    $or: MyobuDBWhereClause[];
+} | {
     [key: string]: MyobuDBWhereClauseValue;
 };
 export interface MergeOnMatchOnCreate {
@@ -256,11 +260,30 @@ export interface MyobuDBApplyEventRequest {
     };
     jwt: MyobuDBJWT;
 }
+export declare enum MyobuDBProposalVoteType {
+    SINGLE_CHOICE = "SINGLE_CHOICE",
+    MULTIPLE_CHOICE = "MULTIPLE_CHOICE"
+}
 export interface MyobuDBProposal {
     title: string;
     description: string;
-    voteType: "SINGLE_CHOICE";
+    voteType: MyobuDBProposalVoteType;
+    /**
+     * Minimum voting power required to vote.
+     */
+    minVotingPower: number;
+    /**
+     * Current total voting power voted.
+     */
     totalVotingPower: number;
+    /**
+     * The date the proposal allows voting to start.
+     */
+    startDate: number;
+    /**
+     * The date the proposal allows voting to end.
+     */
+    endDate: number;
     choices: MyobuDBProposalChoice[];
     _id?: string;
     _owner?: string;

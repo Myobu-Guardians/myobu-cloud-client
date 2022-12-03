@@ -72,7 +72,13 @@ export default class MyobuProtocolClient {
     getMNS(addressOrName: string): Promise<MNSProfile | undefined>;
     createProposal(proposal: MyobuDBProposal): Promise<MyobuDBProposal>;
     addProposalChoice(proposalId: string, choiceDescription: string): Promise<MyobuDBProposalChoice>;
-    updateProposal(proposalId: string, title: string, description: string): Promise<MyobuDBProposal | undefined>;
+    updateProposal(proposalId: string, { title, description, minVotingPower, startDate, endDate, }: {
+        title: string;
+        description: string;
+        minVotingPower: number;
+        startDate: number;
+        endDate: number;
+    }): Promise<MyobuDBProposal | undefined>;
     getProposal(proposalId: string): Promise<MyobuDBProposal | undefined>;
     vote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
     unvote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;

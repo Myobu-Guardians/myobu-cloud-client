@@ -386,10 +386,15 @@ export interface MyobuDBApplyEventRequest {
   jwt: MyobuDBJWT;
 }
 
+export enum MyobuDBProposalVoteType {
+  SINGLE_CHOICE = "SINGLE_CHOICE",
+  MULTIPLE_CHOICE = "MULTIPLE_CHOICE",
+}
+
 export interface MyobuDBProposal {
   title: string;
   description: string;
-  voteType: "SINGLE_CHOICE" | "MULTIPLE_CHOICE";
+  voteType: MyobuDBProposalVoteType;
   /**
    * Minimum voting power required to vote.
    */
