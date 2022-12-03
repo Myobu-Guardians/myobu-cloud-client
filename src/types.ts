@@ -160,14 +160,14 @@ export type MyobuDBReturnValue =
 
 export type MyobuDBWithValue = MyobuDBReturnValue;
 
-export type MyobuDBWhereClause = /*
+export type MyobuDBWhereClause =
   | {
       $and: MyobuDBWhereClause[];
     }
   | {
       $or: MyobuDBWhereClause[];
     }
-  |*/ { [key: string]: MyobuDBWhereClauseValue };
+  | { [key: string]: MyobuDBWhereClauseValue };
 
 export interface MergeOnMatchOnCreate {
   onMatch?: {
@@ -389,8 +389,26 @@ export interface MyobuDBApplyEventRequest {
 export interface MyobuDBProposal {
   title: string;
   description: string;
-  voteType: "SINGLE_CHOICE";
+  voteType: "SINGLE_CHOICE" | "MULTIPLE_CHOICE";
+  /**
+   * Minimum voting power required to vote.
+   */
+  minVotingPower: number;
+
+  /**
+   * Current total voting power voted.
+   */
   totalVotingPower: number;
+
+  /**
+   * The date the proposal allows voting to start.
+   */
+  startDate: number;
+
+  /**
+   * The date the proposal allows voting to end.
+   */
+  endDate: number;
 
   choices: MyobuDBProposalChoice[];
 

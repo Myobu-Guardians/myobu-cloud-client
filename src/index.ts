@@ -550,6 +550,9 @@ JWT:`;
       title: proposal.title,
       description: proposal.description,
       voteType: proposal.voteType,
+      minVotingPower: proposal.minVotingPower,
+      startDate: proposal.startDate,
+      endDate: proposal.endDate,
     });
     if (result.length === 0) {
       throw new Error("Failed to create proposal");
@@ -588,13 +591,27 @@ JWT:`;
 
   async updateProposal(
     proposalId: string,
-    title: string,
-    description: string
+    {
+      title,
+      description,
+      minVotingPower,
+      startDate,
+      endDate,
+    }: {
+      title: string;
+      description: string;
+      minVotingPower: number;
+      startDate: number;
+      endDate: number;
+    }
   ): Promise<MyobuDBProposal | undefined> {
     const result = await this.applyDBEvent("Proposal", "updateProposal", {
       proposalId,
       title,
       description,
+      minVotingPower,
+      startDate,
+      endDate,
     });
     if (result.length === 0) {
       throw new Error("Failed to update proposal");

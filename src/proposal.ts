@@ -7,7 +7,14 @@ import { MyobuDBEvent } from "./types";
 const createProposal: MyobuDBEvent = {
   label: "Proposal",
   name: "createProposal",
-  params: ["title", "description", "voteType"],
+  params: [
+    "title",
+    "description",
+    "voteType",
+    "minVotingPower",
+    "startDate",
+    "endDate",
+  ],
   description: "Create a new proposal",
   db: {
     create: [
@@ -18,6 +25,9 @@ const createProposal: MyobuDBEvent = {
           voteType: { $arg: "voteType" },
           title: { $arg: "title" },
           description: { $arg: "description" },
+          minVotingPower: { $arg: "minVotingPower" },
+          startDate: { $arg: "startDate" },
+          endDate: { $arg: "endDate" },
           totalVotingPower: 0,
 
           _id: { $id: "nanoid" },
@@ -34,7 +44,14 @@ const createProposal: MyobuDBEvent = {
 const updateProposal: MyobuDBEvent = {
   label: "Proposal",
   name: "updateProposal",
-  params: ["proposalId", "title", "description"],
+  params: [
+    "proposalId",
+    "title",
+    "description",
+    "minVotingPower",
+    "startDate",
+    "endDate",
+  ],
   description: "Update a proposal",
   db: {
     match: [
@@ -50,6 +67,9 @@ const updateProposal: MyobuDBEvent = {
     set: {
       "proposal.title": { $arg: "title" },
       "proposal.description": { $arg: "description" },
+      "proposal.minVotingPower": { $arg: "minVotingPower" },
+      "proposal.startDate": { $arg: "startDate" },
+      "proposal.endDate": { $arg: "endDate" },
     },
     return: ["proposal"],
   },
@@ -145,13 +165,28 @@ const vote: MyobuDBEvent = {
         },
       },
     ],
+    where: {
+      $and: [
+        {
+          "proposal.startDate": { $lte: { $timestamp: true } },
+        },
+        {
+          "proposal.endDate": { $gte: { $timestamp: true } },
+        },
+        {
+          "proposal.minVotingPower": {
+            $lte: { $votingPower: { $signer: true } },
+          },
+        },
+      ],
+    },
     merge: [
       {
         key: "vote",
         labels: ["Vote"],
         props: {
-          proposalId: { $arg: "proposalId" },
-          choiceId: { $arg: "choiceId" },
+          proposalId: { $key: "proposal._id" },
+          choiceId: { $key: "choice._id" },
           _owner: { $signer: true },
         },
         onCreate: {
@@ -248,6 +283,16 @@ const unvote: MyobuDBEvent = {
         },
       },
     ],
+    where: {
+      $and: [
+        {
+          "proposal.startDate": { $lte: { $timestamp: true } },
+        },
+        {
+          "proposal.endDate": { $gte: { $timestamp: true } },
+        },
+      ],
+    },
     set: {
       "proposal.totalVotingPower": {
         $sub: [

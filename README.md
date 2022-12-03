@@ -552,7 +552,7 @@ const proposal = {
   ],
   startAt: new Date().getTime(),
   endAt: new Date().getTime() + 1000 * 60 * 60 * 24 * 7, // 7 days
-  minVotingPower: 100, // Minimum voting power required to vote
+  minVotingPower: 100, // Minimum voting power required to vote the proposal
 };
 const _proposal = await client.createProposal(proposal);
 
