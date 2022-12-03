@@ -1,4 +1,37 @@
-export declare type MyobuDBPropValue = string | number | boolean | null | MyobuDBPropValue[];
+export declare type MyobuDBPropValueObject = {
+    $object: {
+        [key: string]: MyobuDBPropValue;
+    };
+};
+export declare type MyobuDBPropValue = string | number | boolean | null | undefined | {
+    $add: MyobuDBPropValue[];
+} | {
+    $sub: MyobuDBPropValue[];
+} | {
+    $mul: MyobuDBPropValue[];
+} | {
+    $div: MyobuDBPropValue[];
+}
+/** Property key, eg "mns.name" */
+ | {
+    $key: string;
+} | {
+    $timestamp: boolean;
+} | {
+    $signer: boolean;
+} | {
+    $coalesce: MyobuDBPropValue[];
+} | {
+    $arg: string;
+} | {
+    $votingPower: MyobuDBPropValue;
+} | MyobuDBPropValueObject | {
+    $get: [{
+        $arg: string;
+    }, string];
+} | {
+    $id: "uuid" | "nanoid";
+} | MyobuDBPropValue[];
 export interface MyobuRecord {
     labels?: string[];
     type?: string;
@@ -72,75 +105,62 @@ export declare type MyobuDBWhereClauseValue = {
 } | {
     $labels: string[];
 };
-export interface MyobuDBLabelACL {
-    node: {
-        minHold: number;
-        minStake: number;
-        relationship: string;
-        "!relationship": string;
-    };
-}
-export interface MyobuDBNodeACL {
-    relationship: {
-        minHold: number;
-        minStake: number;
-        relationship: string;
-        "!relationship": string;
-    };
-}
 export declare type MyobuDBReturnValue = string | {
     key: string;
     count?: boolean;
+    sum?: boolean;
     as?: string;
     distinct?: boolean;
 };
+export declare type MyobuDBWithValue = MyobuDBReturnValue;
 export declare type MyobuDBWhereClause = {
     [key: string]: MyobuDBWhereClauseValue;
 };
 export interface MergeOnMatchOnCreate {
     onMatch?: {
-        [key: string]: any;
+        [key: string]: MyobuDBPropValue;
     };
     onCreate?: {
-        [key: string]: any;
+        [key: string]: MyobuDBPropValue;
     };
 }
-export declare type MyobuDBRequest = {
+export interface MyobuDBOperation {
     match?: (MyobuDBNode | MyobuDBRelationship)[];
     create?: (MyobuDBNode | MyobuDBRelationship)[];
     /**
      * For MERGE on relationships, we don't accept node props.
      */
     merge?: ((MyobuDBNode & MergeOnMatchOnCreate) | MyobuDBRelationship)[];
+    where?: MyobuDBWhereClause;
+    with?: MyobuDBWithValue[];
     delete?: string[];
     detachDelete?: string[];
     set?: {
-        [key: string]: any;
+        [key: string]: MyobuDBPropValue;
     };
-    where?: MyobuDBWhereClause;
     skip?: number;
     limit?: number;
     orderBy?: {
         [key: string]: MyobuDBOrder;
     };
     return?: MyobuDBReturnValue[];
+}
+export interface MyobuDBReadOperation {
+    match?: (MyobuDBNode | MyobuDBRelationship)[];
     /**
-     * List constraints of label.
+     * For MERGE on relationships, we don't accept node props.
      */
-    listConstraints?: string;
-    /**
-     * Drop constraints by constraint names
-     */
-    dropConstraints?: string[];
-    /**
-     * Create constraints
-     */
-    createConstraints?: {
-        label: string;
-        unique: string[][];
+    where?: MyobuDBWhereClause;
+    with?: MyobuDBWithValue[];
+    skip?: number;
+    limit?: number;
+    orderBy?: {
+        [key: string]: MyobuDBOrder;
     };
-    jwt?: MyobuDBJWT;
-};
+    return?: MyobuDBReturnValue[];
+}
+export interface MyobuDBRequest extends MyobuDBReadOperation {
+}
 export interface MyobuDBLabelSchema {
     label: string;
     properties: {
@@ -165,6 +185,34 @@ export interface MyobuDBLabelSchemaRequest {
     delete?: boolean;
 }
 export declare function isMyobuDBLabelSchema(obj: any): obj is MyobuDBLabelSchema;
+export interface MyobuDBLabelACL {
+    label: string;
+    node: {
+        write: {
+            minBalance?: number;
+            minVotingPower?: number;
+        };
+    };
+}
+export interface MyobuDBLabelACLRequest {
+    acl: MyobuDBLabelACL;
+    jwt?: MyobuDBJWT;
+    delete?: boolean;
+}
+export declare function isMyobuDBLabelACL(obj: any): obj is MyobuDBLabelACL;
+export interface MyobuDBLabelConstraints {
+    label: string;
+    unique: string[][];
+}
+export interface MyobuDBLabelConstraintsCreateRequest {
+    constraints: MyobuDBLabelConstraints;
+    jwt?: MyobuDBJWT;
+}
+export interface MyobuDBLabelConstraintsDeleteRequest {
+    constraintNames: string[];
+    jwt?: MyobuDBJWT;
+}
+export declare function isMyobuDBLabelConstraints(obj: any): obj is MyobuDBLabelConstraints;
 export interface MNSProfile {
     name: string;
     displayName: string;
@@ -186,4 +234,49 @@ export interface MNSProfile {
     linkedin?: string;
     eth?: string;
     btc?: string;
+}
+export declare type MyobuDBEventParameter = string;
+export interface MyobuDBEvent {
+    label: string;
+    name: string;
+    params: MyobuDBEventParameter[];
+    description?: string;
+    db: MyobuDBOperation;
+}
+export interface MyobuDBEventRequest {
+    event: MyobuDBEvent;
+    jwt?: MyobuDBJWT;
+    delete?: boolean;
+}
+export interface MyobuDBApplyEventRequest {
+    label: string;
+    eventName: string;
+    eventArgs: {
+        [key: string]: MyobuDBPropValue;
+    };
+    jwt: MyobuDBJWT;
+}
+export interface MyobuDBProposal {
+    title: string;
+    description: string;
+    voteType: "SINGLE_CHOICE";
+    totalVotingPower: number;
+    choices: MyobuDBProposalChoice[];
+    _id?: string;
+    _owner?: string;
+    _createdAt?: number;
+    _updatedAt?: number;
+}
+export interface MyobuDBProposalChoice {
+    description: string;
+    totalVotingPower: number;
+}
+export interface MyobuDBProposalVote {
+    proposalId: string;
+    choiceId: string;
+    votingPower: number;
+    _id: string;
+    _owner: string;
+    _createdAt: number;
+    _updatedAt: number;
 }

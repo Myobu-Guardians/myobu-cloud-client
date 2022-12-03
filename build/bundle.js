@@ -100,6 +100,20 @@
             typeof obj.properties === "object" &&
             obj.schema !== null);
     }
+    function isMyobuDBLabelACL(obj) {
+        return (typeof obj === "object" &&
+            obj !== null &&
+            typeof obj.label === "string" &&
+            typeof obj.node === "object" &&
+            obj.node !== null &&
+            typeof obj.node.write === "object");
+    }
+    function isMyobuDBLabelConstraints(obj) {
+        return (typeof obj === "object" &&
+            obj !== null &&
+            typeof obj.label === "string" &&
+            Array.isArray(obj.unique));
+    }
 
     function appendPrefixToObjectKeys(obj, prefix) {
         var newObj = {};
@@ -179,40 +193,162 @@
                 });
             });
         };
-        MyobuProtocolClient.prototype.db = function (request) {
+        MyobuProtocolClient.prototype.queryDB = function (request) {
             return __awaiter(this, void 0, void 0, function () {
-                var _a, res, _b;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
-                        case 0:
-                            if (!(request.create ||
-                                request.merge ||
-                                request.set ||
-                                request.delete ||
-                                request.detachDelete ||
-                                request.createConstraints ||
-                                request.dropConstraints)) return [3 /*break*/, 2];
-                            _a = request;
-                            return [4 /*yield*/, this.generateJWT()];
-                        case 1:
-                            _a.jwt = _c.sent();
-                            _c.label = 2;
-                        case 2: return [4 /*yield*/, fetch("".concat(this.server, "/db"), {
+                var res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/db"), {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",
                                 },
                                 body: JSON.stringify(request),
                             })];
-                        case 3:
-                            res = _c.sent();
-                            if (!(res.status === 200)) return [3 /*break*/, 5];
+                        case 1:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
                             return [4 /*yield*/, res.json()];
-                        case 4: return [2 /*return*/, _c.sent()];
-                        case 5:
-                            _b = Error.bind;
+                        case 2: return [2 /*return*/, _b.sent()];
+                        case 3:
+                            _a = Error.bind;
                             return [4 /*yield*/, res.text()];
-                        case 6: throw new (_b.apply(Error, [void 0, _c.sent()]))();
+                        case 4: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.applyDBEvent = function (label, eventName, eventArgs) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                label: label,
+                                eventName: eventName,
+                                eventArgs: eventArgs,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/db/apply-event"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.createDBEvent = function (event) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                event: event,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/db-events"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.deleteDBEvent = function (label, eventName) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                event: {
+                                    label: label,
+                                    name: eventName,
+                                    db: {},
+                                    params: [],
+                                },
+                                delete: true,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/db-events"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getDBEvents = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/db-events/").concat(label))];
+                        case 1:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _b.sent()];
+                        case 3:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_a.apply(Error, [void 0, _b.sent()]))();
                     }
                 });
             });
@@ -411,6 +547,194 @@
                 });
             });
         };
+        MyobuProtocolClient.prototype.createLabelConstraints = function (constraints) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                constraints: constraints,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-constraints"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.deleteLabelConstraints = function (constraintNames) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                constraintNames: constraintNames,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-constraints"), {
+                                    method: "DELETE",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.listLabelConstraints = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/label-constraints/").concat(label))];
+                        case 1:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _b.sent()];
+                        case 3:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.setLabelACL = function (acl) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                acl: acl,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-acl"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getLabelACL = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0: return [4 /*yield*/, fetch("".concat(this.server, "/label-acl/").concat(label))];
+                        case 1:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 3];
+                            return [4 /*yield*/, res.json()];
+                        case 2: return [2 /*return*/, _b.sent()];
+                        case 3:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 4: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.deleteLabelACL = function (label) {
+            return __awaiter(this, void 0, void 0, function () {
+                var jwt, request, res, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            if (!this.signer) {
+                                throw new Error("No signer set. Please connect wallet first.");
+                            }
+                            return [4 /*yield*/, this.generateJWT()];
+                        case 1:
+                            jwt = _b.sent();
+                            request = {
+                                jwt: jwt,
+                                acl: {
+                                    label: label,
+                                    node: {
+                                        write: {},
+                                    },
+                                },
+                                delete: true,
+                            };
+                            return [4 /*yield*/, fetch("".concat(this.server, "/label-acl"), {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                    },
+                                    body: JSON.stringify(request),
+                                })];
+                        case 2:
+                            res = _b.sent();
+                            if (!(res.status === 200)) return [3 /*break*/, 4];
+                            return [4 /*yield*/, res.json()];
+                        case 3: return [2 /*return*/, _b.sent()];
+                        case 4:
+                            _a = Error.bind;
+                            return [4 /*yield*/, res.text()];
+                        case 5: throw new (_a.apply(Error, [void 0, _b.sent()]))();
+                    }
+                });
+            });
+        };
         MyobuProtocolClient.prototype.getBalance = function (walletAddress) {
             return __awaiter(this, void 0, void 0, function () {
                 var res, _a, _b;
@@ -453,41 +777,23 @@
         };
         MyobuProtocolClient.prototype.upsertMNS = function (profile) {
             return __awaiter(this, void 0, void 0, function () {
-                var result, _a;
-                var _b, _c, _d;
-                return __generator(this, function (_e) {
-                    switch (_e.label) {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
                             if (!isMNSNameValid(profile.name)) {
                                 throw new Error("Name ".concat(profile.name, " is not valid"));
                             }
-                            if (!this.signer) {
-                                throw new Error("No signer set. Please connect wallet first.");
-                            }
-                            _a = this.db;
-                            _b = {};
-                            _c = {
-                                key: "mns",
-                                labels: ["MNS"]
-                            };
-                            _d = {};
-                            return [4 /*yield*/, this.signer.getAddress()];
-                        case 1: return [4 /*yield*/, _a.apply(this, [(_b.merge = [
-                                    (_c.props = (_d._owner = _e.sent(),
-                                        _d),
-                                        _c.onCreate = appendPrefixToObjectKeys(profile, "mns."),
-                                        _c.onMatch = appendPrefixToObjectKeys(profile, "mns."),
-                                        _c)
-                                ],
-                                    _b.return = ["mns"],
-                                    _b)])];
-                        case 2:
-                            result = _e.sent();
+                            return [4 /*yield*/, this.applyDBEvent("MNS", "upsert", {
+                                    profile: { $object: profile },
+                                })];
+                        case 1:
+                            result = _a.sent();
                             if (result.length === 0) {
                                 throw new Error("Failed to upsert MNS");
                             }
                             else {
-                                return [2 /*return*/, result[0]["mns"]["props"]];
+                                return [2 /*return*/, result[0]["user"]["props"]];
                             }
                     }
                 });
@@ -502,7 +808,7 @@
                             if (addressOrName.endsWith(".m")) {
                                 addressOrName = addressOrName.slice(0, -2);
                             }
-                            return [4 /*yield*/, this.db({
+                            return [4 /*yield*/, this.queryDB({
                                     match: [
                                         {
                                             key: "mns",
@@ -526,12 +832,185 @@
                 });
             });
         };
+        MyobuProtocolClient.prototype.createProposal = function (proposal) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result, createdProposal, i, choice, addedChoice;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "createProposal", {
+                                title: proposal.title,
+                                description: proposal.description,
+                                voteType: proposal.voteType,
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to create proposal");
+                            }
+                            createdProposal = result[0]["proposal"]["props"];
+                            createdProposal.choices = [];
+                            i = 0;
+                            _a.label = 2;
+                        case 2:
+                            if (!(i < proposal.choices.length)) return [3 /*break*/, 5];
+                            choice = proposal.choices[i];
+                            return [4 /*yield*/, this.addProposalChoice(createdProposal._id || "", choice.description)];
+                        case 3:
+                            addedChoice = _a.sent();
+                            createdProposal.choices.push(addedChoice);
+                            _a.label = 4;
+                        case 4:
+                            i++;
+                            return [3 /*break*/, 2];
+                        case 5: return [2 /*return*/, createdProposal];
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.addProposalChoice = function (proposalId, choiceDescription) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "addChoice", {
+                                proposalId: proposalId,
+                                choiceDescription: choiceDescription,
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to add choice");
+                            }
+                            return [2 /*return*/, result[0]["choice"]["props"]];
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.updateProposal = function (proposalId, title, description) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "updateProposal", {
+                                proposalId: proposalId,
+                                title: title,
+                                description: description,
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to update proposal");
+                            }
+                            return [4 /*yield*/, this.getProposal(proposalId)];
+                        case 2: return [2 /*return*/, _a.sent()];
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.getProposal = function (proposalId) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result, proposal, choicesResult;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.queryDB({
+                                match: [
+                                    {
+                                        key: "proposal",
+                                        labels: ["Proposal"],
+                                        props: {
+                                            _id: proposalId,
+                                        },
+                                    },
+                                ],
+                                return: ["proposal"],
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (!(result.length === 0)) return [3 /*break*/, 2];
+                            return [2 /*return*/, undefined];
+                        case 2:
+                            proposal = result[0]["proposal"]["props"];
+                            return [4 /*yield*/, this.queryDB({
+                                    match: [
+                                        {
+                                            key: "proposal",
+                                            labels: ["Proposal"],
+                                            props: {
+                                                _id: proposalId,
+                                            },
+                                        },
+                                        {
+                                            key: "r",
+                                            type: "HAS_CHOICE",
+                                            from: {
+                                                key: "proposal",
+                                            },
+                                            to: {
+                                                key: "choice",
+                                                labels: ["Choice"],
+                                            },
+                                        },
+                                    ],
+                                    return: ["choice"],
+                                })];
+                        case 3:
+                            choicesResult = _a.sent();
+                            proposal.choices = ((choicesResult || []).map(function (r) { return r["choice"]["props"]; }) || []);
+                            return [2 /*return*/, proposal];
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.vote = function (proposalId, choiceId) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "vote", {
+                                proposalId: proposalId,
+                                choiceId: choiceId,
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to vote");
+                            }
+                            else {
+                                return [2 /*return*/, result[0]["proposal"]["props"]];
+                            }
+                    }
+                });
+            });
+        };
+        MyobuProtocolClient.prototype.unvote = function (proposalId, choiceId) {
+            return __awaiter(this, void 0, void 0, function () {
+                var result;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "unvote", {
+                                proposalId: proposalId,
+                                choiceId: choiceId,
+                            })];
+                        case 1:
+                            result = _a.sent();
+                            if (result.length === 0) {
+                                throw new Error("Failed to unvote");
+                            }
+                            else {
+                                return [2 /*return*/, result[0]["proposal"]["props"]];
+                            }
+                    }
+                });
+            });
+        };
         return MyobuProtocolClient;
     }());
 
     exports.appendPrefixToObjectKeys = appendPrefixToObjectKeys;
     exports["default"] = MyobuProtocolClient;
     exports.isMNSNameValid = isMNSNameValid;
+    exports.isMyobuDBLabelACL = isMyobuDBLabelACL;
+    exports.isMyobuDBLabelConstraints = isMyobuDBLabelConstraints;
     exports.isMyobuDBLabelSchema = isMyobuDBLabelSchema;
 
     Object.defineProperty(exports, '__esModule', { value: true });

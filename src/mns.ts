@@ -148,6 +148,9 @@ const unfollows: MyobuDBEvent = {
         to: {
           key: "followee",
         },
+        props: {
+          _owner: { $signer: true },
+        },
       },
     ],
     set: {

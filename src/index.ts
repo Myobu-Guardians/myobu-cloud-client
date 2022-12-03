@@ -14,12 +14,16 @@ import {
   MyobuDBLabelConstraintsDeleteRequest,
   MyobuDBLabelSchema,
   MyobuDBLabelSchemaRequest,
+  MyobuDBProposal,
+  MyobuDBProposalChoice,
+  MyobuDBProposalVote,
   MyobuDBPropValue,
   MyobuDBRequest,
   MyobuRecord,
 } from "./types";
 import { io } from "socket.io-client";
 import { isMNSNameValid } from "./utils";
+import e from "cors";
 export * from "./types";
 export * from "./utils";
 
@@ -511,7 +515,7 @@ JWT:`;
     if (result.length === 0) {
       throw new Error("Failed to upsert MNS");
     } else {
-      return result[0]["mns"]["props"] as any;
+      return result[0]["user"]["props"] as any;
     }
   }
 
@@ -537,6 +541,145 @@ JWT:`;
       return undefined;
     } else {
       return result[0]["mns"]["props"] as any;
+    }
+  }
+
+  async createProposal(proposal: MyobuDBProposal): Promise<MyobuDBProposal> {
+    // Create proposal
+    const result = await this.applyDBEvent("Proposal", "createProposal", {
+      title: proposal.title,
+      description: proposal.description,
+      voteType: proposal.voteType,
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to create proposal");
+    }
+    const createdProposal: MyobuDBProposal = result[0]["proposal"][
+      "props"
+    ] as any;
+
+    createdProposal.choices = [];
+
+    // Add proposal choice
+    for (let i = 0; i < proposal.choices.length; i++) {
+      const choice = proposal.choices[i];
+      const addedChoice = await this.addProposalChoice(
+        createdProposal._id || "",
+        choice.description
+      );
+      createdProposal.choices.push(addedChoice);
+    }
+    return createdProposal;
+  }
+
+  async addProposalChoice(
+    proposalId: string,
+    choiceDescription: string
+  ): Promise<MyobuDBProposalChoice> {
+    const result = await this.applyDBEvent("Proposal", "addChoice", {
+      proposalId,
+      choiceDescription,
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to add choice");
+    }
+    return result[0]["choice"]["props"] as any;
+  }
+
+  async updateProposal(
+    proposalId: string,
+    title: string,
+    description: string
+  ): Promise<MyobuDBProposal | undefined> {
+    const result = await this.applyDBEvent("Proposal", "updateProposal", {
+      proposalId,
+      title,
+      description,
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to update proposal");
+    }
+    return await this.getProposal(proposalId);
+  }
+
+  async getProposal(proposalId: string): Promise<MyobuDBProposal | undefined> {
+    const result = await this.queryDB({
+      match: [
+        {
+          key: "proposal",
+          labels: ["Proposal"],
+          props: {
+            _id: proposalId,
+          },
+        },
+      ],
+      return: ["proposal"],
+    });
+
+    if (result.length === 0) {
+      return undefined;
+    } else {
+      const proposal: MyobuDBProposal = result[0]["proposal"]["props"] as any;
+
+      // Get choices
+      const choicesResult = await this.queryDB({
+        match: [
+          {
+            key: "proposal",
+            labels: ["Proposal"],
+            props: {
+              _id: proposalId,
+            },
+          },
+          {
+            key: "r",
+            type: "HAS_CHOICE",
+            from: {
+              key: "proposal",
+            },
+            to: {
+              key: "choice",
+              labels: ["Choice"],
+            },
+          },
+        ],
+        return: ["choice"],
+      });
+
+      proposal.choices = ((choicesResult || []).map(
+        (r) => r["choice"]["props"]
+      ) || []) as any;
+      return proposal;
+    }
+  }
+
+  async vote(
+    proposalId: string,
+    choiceId: string
+  ): Promise<MyobuDBProposalVote> {
+    const result = await this.applyDBEvent("Proposal", "vote", {
+      proposalId,
+      choiceId,
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to vote");
+    } else {
+      return result[0]["proposal"]["props"] as any;
+    }
+  }
+
+  async unvote(
+    proposalId: string,
+    choiceId: string
+  ): Promise<MyobuDBProposalVote> {
+    const result = await this.applyDBEvent("Proposal", "unvote", {
+      proposalId,
+      choiceId,
+    });
+    if (result.length === 0) {
+      throw new Error("Failed to unvote");
+    } else {
+      return result[0]["proposal"]["props"] as any;
     }
   }
 }

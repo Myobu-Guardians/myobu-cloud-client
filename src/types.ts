@@ -385,3 +385,33 @@ export interface MyobuDBApplyEventRequest {
   eventArgs: { [key: string]: MyobuDBPropValue };
   jwt: MyobuDBJWT;
 }
+
+export interface MyobuDBProposal {
+  title: string;
+  description: string;
+  voteType: "SINGLE_CHOICE";
+  totalVotingPower: number;
+
+  choices: MyobuDBProposalChoice[];
+
+  _id?: string;
+  _owner?: string;
+  _createdAt?: number;
+  _updatedAt?: number;
+}
+
+export interface MyobuDBProposalChoice {
+  description: string;
+  totalVotingPower: number;
+}
+
+export interface MyobuDBProposalVote {
+  proposalId: string;
+  choiceId: string;
+  votingPower: number;
+
+  _id: string;
+  _owner: string;
+  _createdAt: number;
+  _updatedAt: number;
+}

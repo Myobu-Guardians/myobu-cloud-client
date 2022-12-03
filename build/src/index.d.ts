@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { MNSProfile, MyobuDBJWT, MyobuDBLabelSchema, MyobuDBRequest, MyobuRecord } from "./types";
+import { MNSProfile, MyobuDBEvent, MyobuDBJWT, MyobuDBLabelACL, MyobuDBLabelConstraints, MyobuDBLabelSchema, MyobuDBProposal, MyobuDBProposalChoice, MyobuDBProposalVote, MyobuDBPropValue, MyobuDBRequest, MyobuRecord } from "./types";
 export * from "./types";
 export * from "./utils";
 export interface MyobuPubSubHandler<EmitDataType> {
@@ -27,9 +27,19 @@ export default class MyobuProtocolClient {
      * @param address
      */
     generateJWT(): Promise<MyobuDBJWT>;
-    db(request: MyobuDBRequest): Promise<{
+    queryDB(request: MyobuDBRequest): Promise<{
         [key: string]: MyobuRecord;
     }[]>;
+    applyDBEvent(label: string, eventName: string, eventArgs: {
+        [key: string]: MyobuDBPropValue;
+    }): Promise<any>;
+    createDBEvent(event: MyobuDBEvent): Promise<{
+        success: boolean;
+    }>;
+    deleteDBEvent(label: string, eventName: string): Promise<{
+        success: boolean;
+    }>;
+    getDBEvents(label: string): Promise<MyobuDBEvent[]>;
     uploadImages(files: File[]): Promise<{
         urls: (string | null)[];
     }>;
@@ -46,8 +56,24 @@ export default class MyobuProtocolClient {
     setLabelSchema(schema: MyobuDBLabelSchema): Promise<any>;
     getLabelSchema(label: string): Promise<MyobuDBLabelSchema>;
     deleteLabelSchema(label: string): Promise<any>;
+    createLabelConstraints(constraints: MyobuDBLabelConstraints): Promise<any>;
+    deleteLabelConstraints(constraintNames: string[]): Promise<{
+        constraint: NamedCurve;
+        success: boolean;
+        error?: string;
+    }[]>;
+    listLabelConstraints(label: string): Promise<MyobuDBLabelConstraints[]>;
+    setLabelACL(acl: MyobuDBLabelACL): Promise<any>;
+    getLabelACL(label: string): Promise<MyobuDBLabelACL>;
+    deleteLabelACL(label: string): Promise<any>;
     getBalance(walletAddress: string): Promise<number>;
     getVotingPower(walletAddress: string): Promise<number>;
     upsertMNS(profile: MNSProfile): Promise<MNSProfile>;
     getMNS(addressOrName: string): Promise<MNSProfile | undefined>;
+    createProposal(proposal: MyobuDBProposal): Promise<MyobuDBProposal>;
+    addProposalChoice(proposalId: string, choiceDescription: string): Promise<MyobuDBProposalChoice>;
+    updateProposal(proposalId: string, title: string, description: string): Promise<MyobuDBProposal | undefined>;
+    getProposal(proposalId: string): Promise<MyobuDBProposal | undefined>;
+    vote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
+    unvote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
 }
