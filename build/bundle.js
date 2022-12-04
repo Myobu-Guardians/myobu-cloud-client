@@ -120,13 +120,6 @@
         MyobuDBProposalVoteType["MULTIPLE_CHOICE"] = "MULTIPLE_CHOICE";
     })(exports.MyobuDBProposalVoteType || (exports.MyobuDBProposalVoteType = {}));
 
-    function appendPrefixToObjectKeys(obj, prefix) {
-        var newObj = {};
-        for (var key in obj) {
-            newObj["".concat(prefix).concat(key)] = obj[key];
-        }
-        return newObj;
-    }
     var MyobuProtocolClient = /** @class */ (function () {
         function MyobuProtocolClient(_a) {
             var signer = _a.signer, server = _a.server, expiresIn = _a.expiresIn;
@@ -1019,7 +1012,6 @@
     }());
 
     exports.MyobuProtocolClient = MyobuProtocolClient;
-    exports.appendPrefixToObjectKeys = appendPrefixToObjectKeys;
     exports.isMNSNameValid = isMNSNameValid;
     exports.isMyobuDBLabelACL = isMyobuDBLabelACL;
     exports.isMyobuDBLabelConstraints = isMyobuDBLabelConstraints;

@@ -23,23 +23,10 @@ import {
 } from "./types";
 import { io } from "socket.io-client";
 import { isMNSNameValid } from "./utils";
-export * from "./types";
-export * from "./utils";
 
 export interface MyobuPubSubHandler<EmitDataType> {
   unsubscribe: () => void;
   publish: (data: EmitDataType) => Promise<void>;
-}
-
-export function appendPrefixToObjectKeys(
-  obj: { [key: string]: any },
-  prefix: string
-): { [key: string]: any } {
-  const newObj: { [key: string]: any } = {};
-  for (const key in obj) {
-    newObj[`${prefix}${key}`] = obj[key];
-  }
-  return newObj;
 }
 
 interface MyobuProtocolClientConstructorProps {
@@ -699,3 +686,6 @@ JWT:`;
     }
   }
 }
+
+export * from "./types";
+export * from "./utils";

@@ -1,16 +1,9 @@
 import { ethers } from "ethers";
 import { MNSProfile, MyobuDBEvent, MyobuDBJWT, MyobuDBLabelACL, MyobuDBLabelConstraints, MyobuDBLabelSchema, MyobuDBProposal, MyobuDBProposalChoice, MyobuDBProposalVote, MyobuDBPropValue, MyobuDBRequest, MyobuRecord } from "./types";
-export * from "./types";
-export * from "./utils";
 export interface MyobuPubSubHandler<EmitDataType> {
     unsubscribe: () => void;
     publish: (data: EmitDataType) => Promise<void>;
 }
-export declare function appendPrefixToObjectKeys(obj: {
-    [key: string]: any;
-}, prefix: string): {
-    [key: string]: any;
-};
 interface MyobuProtocolClientConstructorProps {
     signer?: ethers.Signer;
     server?: string;
@@ -83,3 +76,5 @@ export declare class MyobuProtocolClient {
     vote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
     unvote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
 }
+export * from "./types";
+export * from "./utils";
