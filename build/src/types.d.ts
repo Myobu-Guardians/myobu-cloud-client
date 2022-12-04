@@ -293,6 +293,10 @@ export interface MyobuDBProposal {
 export interface MyobuDBProposalChoice {
     description: string;
     totalVotingPower: number;
+    _id?: string;
+    _owner?: string;
+    _createdAt?: number;
+    _updatedAt?: number;
 }
 export interface MyobuDBProposalVote {
     proposalId: string;
