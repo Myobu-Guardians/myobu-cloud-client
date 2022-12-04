@@ -873,7 +873,7 @@
                 var result;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "addChoice", {
+                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "addProposalChoice", {
                                 proposalId: proposalId,
                                 choiceDescription: choiceDescription,
                             })];
@@ -966,23 +966,52 @@
                 });
             });
         };
-        MyobuProtocolClient.prototype.vote = function (proposalId, choiceId) {
+        /**
+         * This will unvote all choices of the proposal, then vote for the choices specified
+         * @param proposalId
+         * @param choicesId
+         * @returns
+         */
+        MyobuProtocolClient.prototype.vote = function (proposalId, choiceIds) {
             return __awaiter(this, void 0, void 0, function () {
-                var result;
+                var votes, i, choiceId, result, error_2;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
-                        case 0: return [4 /*yield*/, this.applyDBEvent("Proposal", "vote", {
-                                proposalId: proposalId,
-                                choiceId: choiceId,
-                            })];
+                        case 0:
+                            _a.trys.push([0, 6, , 7]);
+                            return [4 /*yield*/, this.applyDBEvent("Proposal", "unvoteAll", {
+                                    proposalId: proposalId,
+                                })];
                         case 1:
+                            _a.sent();
+                            votes = [];
+                            i = 0;
+                            _a.label = 2;
+                        case 2:
+                            if (!(i < choiceIds.length)) return [3 /*break*/, 5];
+                            choiceId = choiceIds[i];
+                            return [4 /*yield*/, this.applyDBEvent("Proposal", "vote", {
+                                    proposalId: proposalId,
+                                    choiceId: choiceId,
+                                })];
+                        case 3:
                             result = _a.sent();
                             if (result.length === 0) {
                                 throw new Error("Failed to vote");
                             }
                             else {
-                                return [2 /*return*/, result[0]["proposal"]["props"]];
+                                votes.push(result[0]["vote"]["props"]);
                             }
+                            _a.label = 4;
+                        case 4:
+                            i++;
+                            return [3 /*break*/, 2];
+                        case 5: return [2 /*return*/, votes];
+                        case 6:
+                            error_2 = _a.sent();
+                            console.error(error_2);
+                            throw error_2;
+                        case 7: return [2 /*return*/];
                     }
                 });
             });

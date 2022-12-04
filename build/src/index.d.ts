@@ -73,7 +73,13 @@ export declare class MyobuProtocolClient {
         endDate: number;
     }): Promise<MyobuDBProposal | undefined>;
     getProposal(proposalId: string): Promise<MyobuDBProposal | undefined>;
-    vote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
+    /**
+     * This will unvote all choices of the proposal, then vote for the choices specified
+     * @param proposalId
+     * @param choicesId
+     * @returns
+     */
+    vote(proposalId: string, choiceIds: string[]): Promise<MyobuDBProposalVote[]>;
     unvote(proposalId: string, choiceId: string): Promise<MyobuDBProposalVote>;
 }
 export * from "./types";

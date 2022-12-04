@@ -17,6 +17,15 @@ const createProposal: MyobuDBEvent = {
   ],
   description: "Create a new proposal",
   db: {
+    match: [
+      {
+        key: "author",
+        labels: ["MNS"],
+        props: {
+          _owner: { $signer: true },
+        },
+      },
+    ],
     create: [
       {
         key: "proposal",
@@ -33,6 +42,15 @@ const createProposal: MyobuDBEvent = {
           _id: { $id: "nanoid" },
           _createdAt: { $timestamp: true },
           _updatedAt: { $timestamp: true },
+          _owner: { $signer: true },
+        },
+      },
+      {
+        key: "p",
+        type: "PROPOSED",
+        from: { key: "author" },
+        to: { key: "proposal" },
+        props: {
           _owner: { $signer: true },
         },
       },
@@ -164,6 +182,7 @@ const vote: MyobuDBEvent = {
           key: "choice",
         },
       },
+      /*
       {
         key: "votes",
         labels: ["Vote"],
@@ -172,19 +191,23 @@ const vote: MyobuDBEvent = {
           _owner: { $signer: true },
         },
       },
+      */
     ],
     with: [
       "proposal",
       "choice",
       "user",
+      /*
       {
         key: "votes",
         count: true,
         as: "votesCount",
       },
+      */
     ],
     where: {
       $and: [
+        /*
         {
           $or: [
             {
@@ -202,6 +225,7 @@ const vote: MyobuDBEvent = {
             },
           ],
         },
+        */
         {
           $and: [
             {
@@ -269,11 +293,11 @@ const vote: MyobuDBEvent = {
   },
 };
 
-const unvote: MyobuDBEvent = {
+const unvoteAll: MyobuDBEvent = {
   label: "Proposal",
-  name: "unvote",
-  params: ["proposalId", "choiceId"],
-  description: "Unvote on a proposal choice",
+  name: "unvoteAll",
+  params: ["proposalId"],
+  description: "Unvote all votes by the signer on a proposal",
   db: {
     match: [
       {
@@ -284,10 +308,11 @@ const unvote: MyobuDBEvent = {
         },
       },
       {
-        key: "choice",
-        labels: ["Choice"],
+        key: "vote",
+        labels: ["Vote"],
         props: {
-          _id: { $arg: "choiceId" },
+          proposalId: { $arg: "proposalId" },
+          _owner: { $signer: true },
         },
       },
       {
@@ -305,22 +330,26 @@ const unvote: MyobuDBEvent = {
         },
         to: {
           key: "choice",
+          labels: ["Choice"],
         },
       },
       {
         key: "r2",
-        type: "VOTED",
+        type: "HAS_VOTE",
         from: {
-          key: "vote",
-          labels: ["Vote"],
-          props: {
-            _owner: { $signer: true },
-          },
-        },
-        to: {
           key: "choice",
         },
+        to: {
+          key: "vote",
+        },
       },
+    ],
+    with: [
+      "proposal",
+      "vote",
+      "user",
+      "choice",
+      { key: "vote.votingPower", sum: true, as: "totalVotingPower" },
     ],
     where: {
       $and: [
@@ -339,7 +368,7 @@ const unvote: MyobuDBEvent = {
             $key: "proposal.totalVotingPower",
           },
           {
-            $key: "vote.votingPower",
+            $key: "totalVotingPower",
           },
         ],
       },
@@ -364,7 +393,7 @@ const ProposalEvents = {
   updateProposal,
   addProposalChoice,
   vote,
-  unvote,
+  unvoteAll,
 };
 
 export default ProposalEvents;

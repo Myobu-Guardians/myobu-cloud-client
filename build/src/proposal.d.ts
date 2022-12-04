@@ -4,6 +4,6 @@ declare const ProposalEvents: {
     updateProposal: MyobuDBEvent;
     addProposalChoice: MyobuDBEvent;
     vote: MyobuDBEvent;
-    unvote: MyobuDBEvent;
+    unvoteAll: MyobuDBEvent;
 };
 export default ProposalEvents;

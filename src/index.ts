@@ -565,7 +565,7 @@ JWT:`;
     proposalId: string,
     choiceDescription: string
   ): Promise<MyobuDBProposalChoice> {
-    const result = await this.applyDBEvent("Proposal", "addChoice", {
+    const result = await this.applyDBEvent("Proposal", "addProposalChoice", {
       proposalId,
       choiceDescription,
     });
@@ -656,18 +656,40 @@ JWT:`;
     }
   }
 
+  /**
+   * This will unvote all choices of the proposal, then vote for the choices specified
+   * @param proposalId
+   * @param choicesId
+   * @returns
+   */
   async vote(
     proposalId: string,
-    choiceId: string
-  ): Promise<MyobuDBProposalVote> {
-    const result = await this.applyDBEvent("Proposal", "vote", {
-      proposalId,
-      choiceId,
-    });
-    if (result.length === 0) {
-      throw new Error("Failed to vote");
-    } else {
-      return result[0]["proposal"]["props"] as any;
+    choiceIds: string[]
+  ): Promise<MyobuDBProposalVote[]> {
+    try {
+      await this.applyDBEvent("Proposal", "unvoteAll", {
+        proposalId,
+      });
+
+      const votes = [];
+      for (let i = 0; i < choiceIds.length; i++) {
+        const choiceId = choiceIds[i];
+        const result = await this.applyDBEvent("Proposal", "vote", {
+          proposalId,
+          choiceId,
+        });
+
+        if (result.length === 0) {
+          throw new Error("Failed to vote");
+        } else {
+          votes.push(result[0]["vote"]["props"] as any);
+        }
+      }
+
+      return votes;
+    } catch (error) {
+      console.error(error);
+      throw error;
     }
   }
 

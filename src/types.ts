@@ -154,6 +154,7 @@ export type MyobuDBReturnValue =
       key: string;
       count?: boolean;
       sum?: boolean;
+      collect?: boolean;
       as?: string;
       distinct?: boolean;
     };
@@ -421,6 +422,7 @@ export interface MyobuDBProposal {
   _owner?: string;
   _createdAt?: number;
   _updatedAt?: number;
+  author?: MNSProfile;
 }
 
 export interface MyobuDBProposalChoice {
