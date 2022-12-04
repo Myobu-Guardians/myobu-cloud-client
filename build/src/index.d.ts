@@ -16,7 +16,7 @@ interface MyobuProtocolClientConstructorProps {
     server?: string;
     expiresIn?: number;
 }
-export default class MyobuProtocolClient {
+export declare class MyobuProtocolClient {
     signer?: ethers.Signer;
     server: string;
     expiresIn: number;

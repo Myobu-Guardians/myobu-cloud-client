@@ -23,7 +23,6 @@ import {
 } from "./types";
 import { io } from "socket.io-client";
 import { isMNSNameValid } from "./utils";
-import e from "cors";
 export * from "./types";
 export * from "./utils";
 
@@ -48,7 +47,7 @@ interface MyobuProtocolClientConstructorProps {
   server?: string;
   expiresIn?: number;
 }
-export default class MyobuProtocolClient {
+export class MyobuProtocolClient {
   public signer?: ethers.Signer;
   public server: string;
   public expiresIn: number;

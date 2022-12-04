@@ -164,19 +164,58 @@ const vote: MyobuDBEvent = {
           key: "choice",
         },
       },
+      {
+        key: "votes",
+        labels: ["Vote"],
+        props: {
+          proposalId: { $arg: "proposalId" },
+          _owner: { $signer: true },
+        },
+      },
+    ],
+    with: [
+      "proposal",
+      "choice",
+      "user",
+      {
+        key: "votes",
+        count: true,
+        as: "votesCount",
+      },
     ],
     where: {
       $and: [
         {
-          "proposal.startDate": { $lte: { $timestamp: true } },
+          $or: [
+            {
+              $and: [
+                {
+                  "proposal.voteType": {
+                    $eq: "SINGLE_CHOICE",
+                  },
+                },
+                { votesCount: { $eq: 0 } },
+              ],
+            },
+            {
+              $and: [{ "proposal.voteType": { $eq: "MULTIPLE_CHOICE" } }],
+            },
+          ],
         },
         {
-          "proposal.endDate": { $gte: { $timestamp: true } },
-        },
-        {
-          "proposal.minVotingPower": {
-            $lte: { $votingPower: { $signer: true } },
-          },
+          $and: [
+            {
+              "proposal.startDate": { $lte: { $timestamp: true } },
+            },
+            {
+              "proposal.endDate": { $gte: { $timestamp: true } },
+            },
+            {
+              "proposal.minVotingPower": {
+                $lte: { $votingPower: { $signer: true } },
+              },
+            },
+          ],
         },
       ],
     },

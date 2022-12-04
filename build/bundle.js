@@ -1018,8 +1018,8 @@
         return MyobuProtocolClient;
     }());
 
+    exports.MyobuProtocolClient = MyobuProtocolClient;
     exports.appendPrefixToObjectKeys = appendPrefixToObjectKeys;
-    exports["default"] = MyobuProtocolClient;
     exports.isMNSNameValid = isMNSNameValid;
     exports.isMyobuDBLabelACL = isMyobuDBLabelACL;
     exports.isMyobuDBLabelConstraints = isMyobuDBLabelConstraints;
