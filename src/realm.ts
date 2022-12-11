@@ -171,6 +171,73 @@ const makeComment: MyobuDBEvent = {
   },
 };
 
+const makeNoteComment: MyobuDBEvent = Object.assign({}, makeComment, {
+  name: "makeNoteComment",
+});
+
+const makeProposalComment: MyobuDBEvent = {
+  label: "Realm",
+  name: "makeProposalComment",
+  params: ["proposalId", "markdown"],
+  description: "Make a comment on a proposal",
+  db: {
+    match: [
+      {
+        key: "proposal",
+        labels: ["Proposal"],
+        props: {
+          _id: { $arg: "proposalId" },
+        },
+      },
+      {
+        key: "author",
+        labels: ["MNS"],
+        props: {
+          _owner: { $signer: true },
+        },
+      },
+    ],
+    create: [
+      {
+        key: "comment",
+        labels: ["Comment"],
+        props: {
+          markdown: { $arg: "markdown" },
+
+          _owner: { $signer: true },
+          _id: { $id: "nanoid" },
+          _createdAt: { $timestamp: true },
+          _updatedAt: { $timestamp: true },
+        },
+      },
+      {
+        key: "r",
+        type: "POSTED",
+        from: { key: "author" },
+        to: { key: "comment" },
+        props: {
+          _owner: { $signer: true },
+        },
+      },
+      {
+        key: "r2",
+        type: "COMMENTED_ON",
+        from: { key: "comment" },
+        to: { key: "proposal" },
+        props: {
+          _owner: { $signer: true },
+        },
+      },
+    ],
+    return: [
+      "comment",
+      { key: "author.displayName", as: "authorDisplayName" },
+      { key: "author.name", as: "authorName" },
+      { key: "author.avatar", as: "authorAvatar" },
+    ],
+  },
+};
+
 const addTagToNote: MyobuDBEvent = {
   label: "Realm",
   name: "addTagToNote",
@@ -247,9 +314,11 @@ const RealmEvents = {
   publishNote,
   deleteNote,
   updateNote,
-  makeComment,
+  makeComment, // <- Decprecate this soon
+  makeNoteComment,
   addTagToNote,
   deleteTagFromNote,
+  makeProposalComment,
 };
 
 export default RealmEvents;

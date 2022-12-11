@@ -116,6 +116,7 @@ const addProposalChoice: MyobuDBEvent = {
         props: {
           description: { $arg: "choiceDescription" },
           totalVotingPower: 0,
+          totalVotesCount: 0,
 
           _id: { $id: "nanoid" },
           _createdAt: { $timestamp: true },
@@ -267,6 +268,19 @@ const vote: MyobuDBEvent = {
               { $key: "vote.votingPower" },
             ],
           },
+          "choice.totalVotesCount": {
+            $add: [
+              {
+                $coalesce: [
+                  {
+                    $key: "choice.totalVotesCount",
+                  },
+                  0, // default value
+                ],
+              },
+              1,
+            ],
+          },
           "proposal.totalVotingPower": {
             $add: [
               {
@@ -380,6 +394,14 @@ const unvoteAll: MyobuDBEvent = {
           {
             $key: "vote.votingPower",
           },
+        ],
+      },
+      "choice.totalVotesCount": {
+        $sub: [
+          {
+            $coalesce: [{ $key: "choice.totalVotesCount" }, 1],
+          },
+          1,
         ],
       },
     },

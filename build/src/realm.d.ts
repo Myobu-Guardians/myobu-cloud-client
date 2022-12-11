@@ -4,7 +4,9 @@ declare const RealmEvents: {
     deleteNote: MyobuDBEvent;
     updateNote: MyobuDBEvent;
     makeComment: MyobuDBEvent;
+    makeNoteComment: MyobuDBEvent;
     addTagToNote: MyobuDBEvent;
     deleteTagFromNote: MyobuDBEvent;
+    makeProposalComment: MyobuDBEvent;
 };
 export default RealmEvents;
