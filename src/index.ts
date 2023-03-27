@@ -72,10 +72,7 @@ export class MyobuProtocolClient {
         jwt.payload &&
         Date.now() < jwt.payload.exp &&
         jwt.payload.iss === address &&
-        ethers.utils.verifyMessage(
-          (jwt.message || "") + JSON.stringify(jwt.payload),
-          jwt.signature
-        ) === address
+        ethers.utils.verifyMessage(jwt.message || "", jwt.signature) === address
       ) {
         return jwt;
       }
@@ -87,19 +84,28 @@ export class MyobuProtocolClient {
       iss: await this.signer.getAddress(),
       exp: exp,
     };
-    const message = `Greetings from Myobu Protocol!
+    const greetingMessage = `Greetings from Myobu Protocol! This signature will not cost you any fees.`;
+    let message = `${
+      window.location.host
+    } wants you to sign in with your Ethereum account:
+${ethers.utils.getAddress(payload.iss)}
 
-Sign this message to prove that you are the owner of the address ${payload.iss}.
-This signature will not cost you any fees.  
-This signature will expire at ${new Date(exp).toLocaleString()}
+${greetingMessage}
 
-JWT:`;
+URI: ${window.location.origin}
+Version: 1
+Chain ID: ${await this.signer.getChainId()}
+Nonce: ${Math.floor(Math.random() * 100000000)}
+Issued At: ${new Date().toISOString()}
+Expiration Time: ${new Date(exp).toISOString()}
+Request ID: ${btoa(JSON.stringify(payload))}
+Resources:
+- https://protocol.myobu.io
+- ${window.location.origin}`;
 
     let signature: MyobuDBJWTSignature = "";
     try {
-      signature = await this.signer.signMessage(
-        message + JSON.stringify(payload)
-      );
+      signature = await this.signer.signMessage(message);
     } catch (error) {
       throw new Error(
         "Failed to sign JWT to authenticate the Myobu Protocol database request"
