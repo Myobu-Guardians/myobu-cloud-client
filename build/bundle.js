@@ -135,17 +135,17 @@
          */
         MyobuProtocolClient.prototype.generateJWT = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var address, jwt_1, exp, payload, message, signature, jwt;
-                var _a;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var address, jwt_1, exp, payload, greetingMessage, message, _a, _b, signature, jwt;
+                var _c;
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
                         case 0:
                             if (!this.signer) {
                                 throw new Error("No signer set. Please connect wallet first.");
                             }
                             return [4 /*yield*/, this.signer.getAddress()];
                         case 1:
-                            address = _b.sent();
+                            address = _d.sent();
                             if (localStorage && localStorage.getItem("myobu-protocol/jwt/".concat(address))) {
                                 jwt_1 = JSON.parse(localStorage.getItem("myobu-protocol/jwt/".concat(address)) || "{}");
                                 // Check if the JWT is still valid
@@ -153,30 +153,34 @@
                                     jwt_1.payload &&
                                     Date.now() < jwt_1.payload.exp &&
                                     jwt_1.payload.iss === address &&
-                                    ethers.ethers.utils.verifyMessage((jwt_1.message || "") + JSON.stringify(jwt_1.payload), jwt_1.signature) === address) {
+                                    ethers.ethers.utils.verifyMessage(jwt_1.message || "", jwt_1.signature) === address) {
                                     return [2 /*return*/, jwt_1];
                                 }
                             }
                             exp = Date.now() + this.expiresIn;
-                            _a = {};
+                            _c = {};
                             return [4 /*yield*/, this.signer.getAddress()];
                         case 2:
-                            payload = (_a.iss = _b.sent(),
-                                _a.exp = exp,
-                                _a);
-                            message = "Greetings from Myobu Protocol!\n\nSign this message to prove that you are the owner of the address ".concat(payload.iss, ".\nThis signature will not cost you any fees.  \nThis signature will expire at ").concat(new Date(exp).toLocaleString(), "\n\nJWT:");
-                            signature = "";
-                            _b.label = 3;
+                            payload = (_c.iss = _d.sent(),
+                                _c.exp = exp,
+                                _c);
+                            greetingMessage = "Greetings from Myobu Protocol! This signature will not cost you any fees.";
+                            _b = (_a = "".concat(window.location.host, " wants you to sign in with your Ethereum account:\n").concat(ethers.ethers.utils.getAddress(payload.iss), "\n\n").concat(greetingMessage, "\n\nURI: ").concat(window.location.origin, "\nVersion: 1\nChain ID: ")).concat;
+                            return [4 /*yield*/, this.signer.getChainId()];
                         case 3:
-                            _b.trys.push([3, 5, , 6]);
-                            return [4 /*yield*/, this.signer.signMessage(message + JSON.stringify(payload))];
+                            message = _b.apply(_a, [_d.sent(), "\nNonce: "]).concat(Math.floor(Math.random() * 100000000), "\nIssued At: ").concat(new Date().toISOString(), "\nExpiration Time: ").concat(new Date(exp).toISOString(), "\nRequest ID: ").concat(btoa(JSON.stringify(payload)), "\nResources:\n- https://protocol.myobu.io\n- ").concat(window.location.origin);
+                            signature = "";
+                            _d.label = 4;
                         case 4:
-                            signature = _b.sent();
-                            return [3 /*break*/, 6];
+                            _d.trys.push([4, 6, , 7]);
+                            return [4 /*yield*/, this.signer.signMessage(message)];
                         case 5:
-                            _b.sent();
-                            throw new Error("Failed to sign JWT to authenticate the Myobu Protocol database request");
+                            signature = _d.sent();
+                            return [3 /*break*/, 7];
                         case 6:
+                            _d.sent();
+                            throw new Error("Failed to sign JWT to authenticate the Myobu Protocol database request");
+                        case 7:
                             jwt = {
                                 message: message,
                                 payload: payload,
